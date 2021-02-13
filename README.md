@@ -1,7 +1,7 @@
 # Schwarz-Christoffel
 Web-App for the Visualization of Schwarz-Christoffel Mapping
 
-## Setup:
+# Setup:
 
 ### Enter Django project folder
 cd backend
@@ -20,8 +20,8 @@ npm run dev
 python manage.py runserver
 ### Then visit http://localhost:8000
 
-##Directory Guide:
-### Overview (key files)
+# Directory Guide:
+## Overview (key files)
 ```
 -backend  -backend -settings
 	 	   -urls
@@ -38,7 +38,7 @@ python manage.py runserver
 .gitignore
 README
 ```
-### Key File Explanation
+## Key File Explanation
 ```
 ./backend/backend - Django setup directory
 ./backend/backend/settings.py - Django settings
