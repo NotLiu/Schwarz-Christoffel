@@ -6,6 +6,7 @@ Web-App for the Visualization of Schwarz-Christoffel Mapping
 ### Enter Django project folder
 cd backend
 ### Setup and activate pipenv
+pip install pipenv (if you don't already have pipenv)
 pipenv shell
 ### Install requirements, this is just Django at the moment
 pip install -r requirements.txt
@@ -63,5 +64,7 @@ README
 ## Authors
 Andrew Liu (@NotLiu), Zane Fadul (@ZaneFadul)
 
+###Relevant base guides
+https://mattsegal.dev/django-react.html
 
 
