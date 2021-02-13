@@ -1,27 +1,28 @@
-## Schwarz-Christoffel
+# Schwarz-Christoffel
 Web-App for the Visualization of Schwarz-Christoffel Mapping
 
 ##Setup:
 
-# Enter Django project folder
+### Enter Django project folder
 cd backend
-# Setup and activate pipenv
+### Setup and activate pipenv
 pipenv shell
-# Install requirements, this is just Django at the moment
+### Install requirements, this is just Django at the moment
 pip install -r requirements.txt
-# Setup Django, migrate is mainly used for database
+### Setup Django, migrate is mainly used for database
 python manage.py migrate
-#build webpackage
+###build webpackage
 // keep this running in a separate cmd to automatically update webpackage changes as you dev
 cd..
 cd frontend
 npm run dev
-#run server
+###run server
 python manage.py runserver
-# Then visit http://localhost:8000
+### Then visit http://localhost:8000
 
 ##Directory Guide:
-#Overview (key files)
+###Overview (key files)
+```
 -backend  -backend -settings
 	 	   -urls
 	  -SC	   -static	-build		-main.js
@@ -36,7 +37,8 @@ python manage.py runserver
 	  -webpack.config.js
 .gitignore
 README
-#Key File Explanation
+```
+###Key File Explanation
 ./backend/backend - Django setup directory
 ./backend/backend/settings.py - Django settings
 ./backend/backend/urls.py - Django URLs (Routing)
@@ -57,8 +59,8 @@ README
 .gitignore
 README
 
-#Authors
-Andrew Liu, Zane Fadul
+##Authors
+Andrew Liu (@NotLiu), Zane Fadul (@ZaneFadul)
 
 
 
