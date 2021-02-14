@@ -43,6 +43,12 @@ class App extends React.Component{
                     p.stroke(200);
                     p.line(originx+i*gridWidth, 0, originx+i*gridWidth, canvasHeight);
                     p.line(0,originy+j*gridHeight,canvasWidth,originy+j*gridHeight);
+
+                    //notches
+                    p.strokeWeight(2);
+                    p.stroke(0);
+                    p.line(originx+i*gridWidth, originy-5, originx+i*gridWidth, originy+5);
+                    p.line(originx-5,originy+j*gridHeight,originx+5,originy+j*gridHeight);
                 }
             }
 
@@ -51,6 +57,11 @@ class App extends React.Component{
             p.strokeWeight(2);
             p.line(0, originy, canvasWidth, originy);
             p.line(originx, 0, originx, canvasHeight);
+
+            p.textSize(12);
+            p.fill(50);
+            p.text('x', canvasWidth-13, originy-7);
+            p.text('y', originx+9, 0+12);
             // console.log(originx);
         }
     }
