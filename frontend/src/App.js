@@ -12,7 +12,8 @@ class App extends React.Component{
 
         this.state = {
             count:0,
-            gridSize:[-10, 10,-10,10,50,50] //minx, maxx, miny, maxy, gridWidth, gridHeight
+            gridSize:[-10, 10,-10,10,50,50], //minx, maxx, miny, maxy, gridWidth, gridHeight
+            vertices: []
         };
     }
 
@@ -21,8 +22,6 @@ class App extends React.Component{
         let canvasHeight = 590;
         let gridHeight = canvasHeight / (Math.abs(this.state.gridSize[3]) + Math.abs(this.state.gridSize[2]));
         let gridWidth = canvasWidth / (Math.abs(this.state.gridSize[1]) + Math.abs(this.state.gridSize[0]));
-
-        let vertices = [];
 
         if(Math.sign(this.state.gridSize[3]) == Math.sign(this.state.gridSize[2])){
             gridHeight = Math.abs(canvasHeight / (Math.abs(this.state.gridSize[3]) - Math.abs(this.state.gridSize[2])));
@@ -167,10 +166,12 @@ class App extends React.Component{
             p.text('y', originx+9, 0+17);
 
             //display vertices
-            for(let i = 0; i<vertices.length;i++){
-                p.circle(vertices[i][0]*gridWidth + originx, -vertices[i][1]*gridHeight + originy, 5);
+            p.beginShape();
+            for(let i = 0; i<this.state.vertices.length;i++){
+                p.circle(this.state.vertices[i][0]*gridWidth + originx, -this.state.vertices[i][1]*gridHeight + originy, 3);
+                p.vertex(this.state.vertices[i][0]*gridWidth + originx, -this.state.vertices[i][1]*gridHeight + originy);
             }
-
+            p.endShape();
             //mouse position display
             // console.log("("+p.mouseX.toString()+", "+p.mouseY.toString()+")");
             p.text("("+customRoundX(p.mouseX, gridWidth).toString()+", "+customRoundY(p.mouseY, gridHeight).toString()+")", p.mouseX+5,p.mouseY-5);
@@ -181,18 +182,20 @@ class App extends React.Component{
             let new_vert = [customRoundX(p.mouseX,gridWidth), customRoundY(p.mouseY,gridHeight)];
             let flag = 0;
             
-            for(let i = 0; i< vertices.length;i++){
-                if(vertices[i][0] == new_vert[0] && vertices[i][1] == new_vert[1]){
+            for(let i = 0; i< this.state.vertices.length;i++){
+                if(this.state.vertices[i][0] == new_vert[0] && this.state.vertices[i][1] == new_vert[1]){
                     flag = 1;
                     break;
                 }
             }
 
-            if(flag == 0){
-                vertices.push(new_vert);
+            if(flag == 0 && p.mouseX<canvasWidth && p.mouseX > 0 && p.mouseY>0 && p.mouseY<canvasHeight){
+                this.state.vertices.push(new_vert);
             }
             
-            console.log(vertices);
+
+            console.log(customRoundX(p.mouseX,gridWidth));
+            console.log(this.state.vertices);
         }
     }
 
@@ -202,16 +205,19 @@ class App extends React.Component{
 
     
     render(){
-        const onClick = () => {this.setState({count: this.state.count+1}); console.log(this.state.count);};
+        const onClick = () => {this.setState({vertices: []})};
 
         return(
-            <div>
+            <div id="cont">
                 <div ref={this.myRef}></div>
                 
-                {/* <div>
-                    <h1>Zane has {this.state.count} moms</h1>
-                    <button onClick={onClick}>Add mom</button>
-                </div> */}
+                <div id = "vertexBox">
+                    <div id="box">
+                        text
+                        {this.state.vertices}
+                    </div>
+                    <button onClick={onClick}>Clear</button>
+                </div>
             </div>
         )
     }

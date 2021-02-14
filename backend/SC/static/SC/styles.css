@@ -5,6 +5,17 @@ body {
     font-family: sans-serif;
     background-color: rgb(197, 231, 219);
 }
-h1{
-    color: white;
+
+#cont{
+    display: flex;;
+    flex-direction: row;
+}
+
+#vertexBox{
+    align-self: flex-end;
+
+}
+#box{
+    background-color:aliceblue;
+    padding: 10 10 20 20;
 }
