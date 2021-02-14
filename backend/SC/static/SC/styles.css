@@ -12,10 +12,20 @@ body {
 }
 
 #vertexBox{
-    align-self: flex-end;
 
 }
 #box{
+    display: flex;;
+    flex-direction: column;
     background-color:aliceblue;
-    padding: 10 10 20 20;
+    padding: 10 20 10 20;
 }
+
+ul{
+    padding:0 0 0 0;
+    text-align: left;
+}
+li{
+    list-style: none;
+}
+

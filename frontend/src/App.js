@@ -191,11 +191,8 @@ class App extends React.Component{
 
             if(flag == 0 && p.mouseX<canvasWidth && p.mouseX > 0 && p.mouseY>0 && p.mouseY<canvasHeight){
                 this.state.vertices.push(new_vert);
+                this.setState({vertices: this.state.vertices});
             }
-            
-
-            console.log(customRoundX(p.mouseX,gridWidth));
-            console.log(this.state.vertices);
         }
     }
 
@@ -206,17 +203,24 @@ class App extends React.Component{
     
     render(){
         const onClick = () => {this.setState({vertices: []})};
+        const listItems = this.state.vertices.map((vertex, index) =>
+            <li key={index}>({vertex})</li>
+        );
 
+        console.log("vertices",listItems);
         return(
             <div id="cont">
                 <div ref={this.myRef}></div>
                 
                 <div id = "vertexBox">
                     <div id="box">
-                        text
-                        {this.state.vertices}
+                        VERTICES
+                        <ul>
+                            {listItems}
+                        </ul>
+                        <button onClick={onClick}>Clear</button>
                     </div>
-                    <button onClick={onClick}>Clear</button>
+                    
                 </div>
             </div>
         )
