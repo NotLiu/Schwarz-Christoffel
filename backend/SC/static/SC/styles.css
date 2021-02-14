@@ -3,5 +3,8 @@ body {
     justify-content: center;
     text-align: center;
     font-family: sans-serif;
-    background-color: rgb(139, 192, 192);
+    background-color: rgb(197, 231, 219);
+}
+h1{
+    color: white;
 }
