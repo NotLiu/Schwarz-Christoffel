@@ -14,8 +14,7 @@ pip install -r requirements.txt
 python manage.py migrate
 ### build webpackage
 // keep this running in a separate cmd to automatically update webpackage changes as you dev
-cd..
-cd frontend
+
 npm run dev
 ### run server
 python manage.py runserver
