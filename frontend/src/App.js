@@ -22,6 +22,8 @@ class App extends React.Component{
         let gridHeight = canvasHeight / (Math.abs(this.state.gridSize[3]) + Math.abs(this.state.gridSize[2]));
         let gridWidth = canvasWidth / (Math.abs(this.state.gridSize[1]) + Math.abs(this.state.gridSize[0]));
 
+        let vertices = [];
+
         if(Math.sign(this.state.gridSize[3]) == Math.sign(this.state.gridSize[2])){
             gridHeight = Math.abs(canvasHeight / (Math.abs(this.state.gridSize[3]) - Math.abs(this.state.gridSize[2])));
         }
@@ -55,6 +57,53 @@ class App extends React.Component{
         console.log("origin location: ",originx, originy);
         console.log("gridwidth: ",gridWidth);
 
+        function customRoundX(x,round){
+            var temp_round = (Math.abs(x)-originx)/round;
+
+            //round to closest integer coordinate
+            if(Math.abs(temp_round)%1<0.5){
+                if(Math.sign(temp_round)<0){ //if negative, reverse rounding
+                    return Math.ceil(temp_round);
+                }
+                else{
+                    return Math.floor(temp_round);
+                }
+                
+            }
+            else{
+                if(Math.sign(temp_round)<0){
+                    return Math.floor(temp_round);
+                }
+                else{
+                    return Math.ceil(temp_round);
+                }
+            }
+        }
+        function customRoundY(y, round){
+            //negative return values because pixel coordinates run opposite vertically
+            var temp_round = (Math.abs(y)-originy)/round;
+
+            //round to closest integer coordinate
+            if(Math.abs(temp_round)%1<0.5){
+                if(Math.sign(temp_round)<0){ //if negative, reverse rounding
+                    return -Math.ceil(temp_round);
+                }
+                else{
+                    return -Math.floor(temp_round);
+                }
+                
+            }
+            else{
+                if(Math.sign(temp_round)<0){
+                    return -Math.floor(temp_round);
+                }
+                else{
+                    return -Math.ceil(temp_round);
+                }
+            }
+        }
+
+
         p.setup = () => {
             p.createCanvas(canvasWidth,canvasHeight);
         }
@@ -63,7 +112,6 @@ class App extends React.Component{
             p.background(240);
             p.fill(255);
 
-            
             //if they min and max coordinates are same sign, fix starting coord
             let startGridV = this.state.gridSize[0];
             let startGridX =this.state.gridSize[2];
@@ -104,7 +152,7 @@ class App extends React.Component{
                     p.line(originx-5,originy-j*gridHeight,originx+5,originy-j*gridHeight);
                 }
             }
-            console.log(originx+-4*gridWidth);
+
             //axis grids
             p.stroke(0);
             p.strokeWeight(2);
@@ -117,11 +165,34 @@ class App extends React.Component{
             p.fill(50);
             p.text('x', canvasWidth-18, originy-9);
             p.text('y', originx+9, 0+17);
-            
+
+            //display vertices
+            for(let i = 0; i<vertices.length;i++){
+                p.circle(vertices[i][0]*gridWidth + originx, -vertices[i][1]*gridHeight + originy, 5);
+            }
 
             //mouse position display
             // console.log("("+p.mouseX.toString()+", "+p.mouseY.toString()+")");
-            p.text("("+p.mouseX.toString()+", "+p.mouseY.toString()+")", p.mouseX+5,p.mouseY-5);
+            p.text("("+customRoundX(p.mouseX, gridWidth).toString()+", "+customRoundY(p.mouseY, gridHeight).toString()+")", p.mouseX+5,p.mouseY-5);
+        }
+
+        p.mouseClicked = () => {
+            //add new vertices;
+            let new_vert = [customRoundX(p.mouseX,gridWidth), customRoundY(p.mouseY,gridHeight)];
+            let flag = 0;
+            
+            for(let i = 0; i< vertices.length;i++){
+                if(vertices[i][0] == new_vert[0] && vertices[i][1] == new_vert[1]){
+                    flag = 1;
+                    break;
+                }
+            }
+
+            if(flag == 0){
+                vertices.push(new_vert);
+            }
+            
+            console.log(vertices);
         }
     }
 
