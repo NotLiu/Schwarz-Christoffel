@@ -2,6 +2,8 @@
 env/
 *.pyc
 *.sqlite3
+*.ipynb
+.ipynb_checkpoints
 
 node_modules
 build/

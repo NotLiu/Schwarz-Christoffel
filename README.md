@@ -60,6 +60,13 @@ README
 .gitignore
 README
 ```
+
+## Jupyter Notebook Sandbox
+### The .ipynb is included in the .gitignore, please use the following command each time you wish to push sandbox code updates.
+```
+jupyter nbconvert $(pwd)/sandbox.ipynb --to="python" --output-dir=$(pwd) --output="sandbox"
+```
+
 ## Authors
 Andrew Liu (@NotLiu), Zane Fadul (@ZaneFadul)
 
