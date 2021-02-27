@@ -11,15 +11,14 @@ class App extends React.Component{
         this.myRef = React.createRef();
 
         this.state = {
-            count:0,
             gridSize:[-10, 10,-10,10,50,50], //minx, maxx, miny, maxy, gridWidth, gridHeight
             vertices: []
         };
     }
 
     Sketch = (p) => {
-        let canvasWidth = 590;
-        let canvasHeight = 590;
+        let canvasWidth = 900;
+        let canvasHeight = 900;
         let gridHeight = canvasHeight / (Math.abs(this.state.gridSize[3]) + Math.abs(this.state.gridSize[2]));
         let gridWidth = canvasWidth / (Math.abs(this.state.gridSize[1]) + Math.abs(this.state.gridSize[0]));
 
@@ -59,47 +58,49 @@ class App extends React.Component{
         function customRoundX(x,round){
             var temp_round = (Math.abs(x)-originx)/round;
 
-            //round to closest integer coordinate
-            if(Math.abs(temp_round)%1<0.5){
-                if(Math.sign(temp_round)<0){ //if negative, reverse rounding
-                    return Math.ceil(temp_round);
-                }
-                else{
-                    return Math.floor(temp_round);
-                }
+            return temp_round;
+            // //round to closest integer coordinate
+            // if(Math.abs(temp_round)%1<0.5){
+            //     if(Math.sign(temp_round)<0){ //if negative, reverse rounding
+            //         return Math.ceil(temp_round);
+            //     }
+            //     else{
+            //         return Math.floor(temp_round);
+            //     }
                 
-            }
-            else{
-                if(Math.sign(temp_round)<0){
-                    return Math.floor(temp_round);
-                }
-                else{
-                    return Math.ceil(temp_round);
-                }
-            }
+            // }
+            // else{
+            //     if(Math.sign(temp_round)<0){
+            //         return Math.floor(temp_round);
+            //     }
+            //     else{
+            //         return Math.ceil(temp_round);
+            //     }
+            // }
         }
         function customRoundY(y, round){
             //negative return values because pixel coordinates run opposite vertically
             var temp_round = (Math.abs(y)-originy)/round;
 
-            //round to closest integer coordinate
-            if(Math.abs(temp_round)%1<0.5){
-                if(Math.sign(temp_round)<0){ //if negative, reverse rounding
-                    return -Math.ceil(temp_round);
-                }
-                else{
-                    return -Math.floor(temp_round);
-                }
+            return temp_round;
+            // //round to closest integer coordinate
+            // if(Math.abs(temp_round)%1<0.5){
+            //     if(Math.sign(temp_round)<0){ //if negative, reverse rounding
+            //         return -Math.ceil(temp_round);
+            //     }
+            //     else{
+            //         return -Math.floor(temp_round);
+            //     }
                 
-            }
-            else{
-                if(Math.sign(temp_round)<0){
-                    return -Math.floor(temp_round);
-                }
-                else{
-                    return -Math.ceil(temp_round);
-                }
-            }
+            // }
+            // else{
+            //     if(Math.sign(temp_round)<0){
+            //         return -Math.floor(temp_round);
+            //     }
+            //     else{
+            //         return -Math.ceil(temp_round);
+            //     }
+            // }
         }
 
 
@@ -173,13 +174,14 @@ class App extends React.Component{
             }
             p.endShape();
             //mouse position display
-            // console.log("("+p.mouseX.toString()+", "+p.mouseY.toString()+")");
-            p.text("("+customRoundX(p.mouseX, gridWidth).toString()+", "+customRoundY(p.mouseY, gridHeight).toString()+")", p.mouseX+5,p.mouseY-5);
+
+            //rounded
+            p.text("("+customRoundX(p.mouseX, gridWidth).toFixed(2)+", "+(-customRoundY(p.mouseY, gridHeight)).toFixed(2)+")", p.mouseX+5,p.mouseY-5);
         }
 
         p.mouseClicked = () => {
             //add new vertices;
-            let new_vert = [customRoundX(p.mouseX,gridWidth), customRoundY(p.mouseY,gridHeight)];
+            let new_vert = [customRoundX(p.mouseX,gridWidth).toFixed(2), (-customRoundY(p.mouseY,gridHeight)).toFixed(2)];
             let flag = 0;
             
             for(let i = 0; i< this.state.vertices.length;i++){
