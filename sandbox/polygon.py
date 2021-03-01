@@ -63,7 +63,8 @@ class Angle:
         
         angle = float('inf')
 
-        # Implementation courtesy of https://stackoverflow.com/questions/20252845/best-algorithm-for-detecting-interior-and-exterior-angles-of-an-arbitrary-shape
+        # Implementation courtesy of
+        # https://stackoverflow.com/questions/20252845/best-algorithm-for-detecting-interior-and-exterior-angles-of-an-arbitrary-shape
 
         p1 = self.vertices[2]
         ref = self.vertices[1]
@@ -88,14 +89,6 @@ class Angle:
             print("Invalid method of returning angle.")
             return None
         
-        '''
-        if method == 'degrees':
-            angle = math.degrees( slope1Negative*math.atan2(self.line1.rise, self.line1.run) +\
-                                 slope2Negative*math.atan2(self.line2.rise, self.line2.run) )
-        elif method == 'radians':
-            angle = slope1Negative*math.atan2(self.line1.rise, self.line1.run) +\
-                slope2Negative*math.atan2(self.line2.rise, self.line2.run)
-        '''
         return angle
 
     def __str__(self):
