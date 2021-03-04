@@ -1,14 +1,18 @@
 import math
 
 class Vertex:
-    def __init__(self, label, coords):
+    def __init__(self, label, coords, isComplex=False):
         self.label = label
         self.x = coords[0]
         self.y = coords[1]
         self.coord = (self.x, self.y)
+        self.zcoord = None
+        self.isComplex = isComplex
+        if self.isComplex:
+            self.zcoord = complex(self.x, self.y)
     
     def __str__(self):
-        return f'{self.label}: ({self.x}, {self.y})'
+        return f'{self.label}: ({self.x}, {self.y})' if not self.isComplex else f'{self.label}: {self.zcoord}' 
         
 class Line:
     def __init__(self, label, vertex1, vertex2):
@@ -96,14 +100,15 @@ class Angle:
             return None
         
         if self.angleType == 'ext':
-            angle = 180 - angle
+            angle = 180 - angle if method == 'degrees' else math.radians(180) - angle
         return angle
 
     def __str__(self):
-        return f'∠{self.label}: {self.calcAngle()}'
+        return f'∠{self.label}: {self.calcAngle("radians")}'
     
 class Polygon:
-    def __init__(self, vertices):
+    def __init__(self, vertices, isComplex=False):
+        self.isComplex = isComplex
         self.vertices = self.getVertices(vertices)
         self.lines = self.getLines()
         self.intAngles, self.extAngles = self.makeAngleObjects()
@@ -124,7 +129,7 @@ class Polygon:
                 return None
 
         for vertex in vertices:
-            vertexList.append(Vertex(chr(vertexLabelASCII), vertex))
+            vertexList.append(Vertex(chr(vertexLabelASCII), vertex, self.isComplex))
             vertexLabelASCII += 1
         return vertexList
     

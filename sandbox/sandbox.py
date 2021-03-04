@@ -9,12 +9,12 @@ square = Polygon([
     (0,1),
     (1,1),
     (1,0)
-    ])
+    ], True)
 
 sc = SchwarzChristoffel(square)
 sc.getParameters()
 print(sc)
-'''
+
 test = Polygon([
     (0,0),
     (2,3),
@@ -74,11 +74,11 @@ test3 = Polygon([
     (2,4),
     (4,4),
     (4,0)
-    ])
-'''
+    ], True)
 
-#print(square)
-#print(test)
-#print(test2)
-#print(test3)
-#print(test4)
+
+print(square)
+print(test)
+print(test2)
+print(test3)
+print(test4)
