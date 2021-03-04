@@ -2,9 +2,7 @@
 # coding: utf-8
 
 from polygon import Polygon
-import scipy
-import math
-
+from schwarzchristoffel import SchwarzChristoffel
 
 square = Polygon([
     (0,0),
@@ -13,6 +11,10 @@ square = Polygon([
     (1,0)
     ])
 
+sc = SchwarzChristoffel(square)
+sc.getParameters()
+print(sc)
+'''
 test = Polygon([
     (0,0),
     (2,3),
@@ -34,6 +36,49 @@ test2 = Polygon([
     (4,0)
     ])
 
-print(square)
-print(test)
-print(test2)
+test3 = Polygon([
+    (0,0),
+    (1,1),
+    (0,2),
+    (-1,1),
+    (-1,0),
+    (-2,0),
+    (-2,2),
+    (-1,2),
+    (0,3),
+    (1,2),
+    (2,2),
+    (2,0)
+    ])
+
+test4 = Polygon([
+    (0,0),
+    (-1,1),
+    (-1,2),
+    (0,2),
+    (0,3),
+    (-2,3),
+    (-2,0)
+    ])
+
+test3 = Polygon([
+    (0,0),
+    (2,2),
+    (0,4),
+    (-2,2),
+    (-2,0),
+    (-4,0),
+    (-4,4),
+    (-2,4),
+    (0,6),
+    (2,4),
+    (4,4),
+    (4,0)
+    ])
+'''
+
+#print(square)
+#print(test)
+#print(test2)
+#print(test3)
+#print(test4)

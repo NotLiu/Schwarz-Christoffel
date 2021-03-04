@@ -34,12 +34,18 @@ class Line:
         yield self.v2
         
 class Angle:
-    def __init__(self, line1, line2):
+    def __init__(self, line1, line2, angleType='int'):
         self.vertices = self.getVertices(line1, line2)
         if len(self.vertices) != 3:
             print('Invalid Angle')
             return None
         self.label = self.determineLabel()
+        self.angleTypes = ['int', 'ext']
+        if angleType in self.angleTypes:
+            self.angleType = angleType
+        else:
+            print('inputted angle type not valid, defaulting to interior angle.')
+            self.angleType = 'int'
         self.line1 = line1
         self.line2 = line2
     
@@ -89,6 +95,8 @@ class Angle:
             print("Invalid method of returning angle.")
             return None
         
+        if self.angleType == 'ext':
+            angle = 180 - angle
         return angle
 
     def __str__(self):
@@ -98,7 +106,7 @@ class Polygon:
     def __init__(self, vertices):
         self.vertices = self.getVertices(vertices)
         self.lines = self.getLines()
-        self.angles = self.makeAngleObjects()
+        self.intAngles, self.extAngles = self.makeAngleObjects()
     
     def getVertices(self, vertices):
         #Assume vertices are list of tuples in order of polygon construction
@@ -130,11 +138,17 @@ class Polygon:
         return lineList
     
     def makeAngleObjects(self):
-        angleList = []
+        intAngleList = []
         for lineIndex in range(1, len(self.lines)):
-            angleList.append(Angle(self.lines[lineIndex - 1], self.lines[lineIndex]))
-        angleList.append(Angle(self.lines[len(self.lines)-1], self.lines[0]))
-        return angleList
+            intAngleList.append(Angle(self.lines[lineIndex - 1], self.lines[lineIndex]))
+        intAngleList.append(Angle(self.lines[len(self.lines)-1], self.lines[0]))
+        
+        extAngleList = []
+        for lineIndex in range(1, len(self.lines)):
+            extAngleList.append(Angle(self.lines[lineIndex - 1], self.lines[lineIndex], 'ext'))
+        extAngleList.append(Angle(self.lines[len(self.lines)-1], self.lines[0], 'ext'))
+        
+        return intAngleList, extAngleList
     
     def __str__(self):
         returnString = 'VERTICES\n'
@@ -143,7 +157,10 @@ class Polygon:
         returnString += '\nLINES\n'
         for line in self.lines:
             returnString += f'{line}\n'
-        returnString += '\nANGLES\n'
-        for angle in self.angles:
+        returnString += '\nINTERIOR ANGLES\n'
+        for angle in self.intAngles:
+            returnString += f'{angle}\n'
+        returnString += '\nEXTERIOR ANGLES\n'
+        for angle in self.extAngles:
             returnString += f'{angle}\n'
         return f'{returnString}\n{"-" * 70}\n'
