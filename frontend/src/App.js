@@ -2,7 +2,13 @@
 import React from 'react'
 import ReactDOM, { render } from 'react-dom'
 // import Sketch from 'react-p5';
+import axios from 'axios';
 import * as p5 from 'p5';
+import Cookies from 'js-cookie';
+
+axios.defaults.xsrfCookieName = 'csrftoken';
+axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+axios.defaults.withCredentials = true;
 
 // Define the React app
 class App extends React.Component{
@@ -12,7 +18,8 @@ class App extends React.Component{
 
         this.state = {
             gridSize:[-10, 10,-10,10,50,50], //minx, maxx, miny, maxy, gridWidth, gridHeight
-            vertices: []
+            vertices: [],
+            articleId: null
         };
     }
 
@@ -200,6 +207,14 @@ class App extends React.Component{
 
     componentDidMount() {
         this.myP5 = new p5(this.Sketch, this.myRef.current)
+        this.url = window.location.href;
+
+        const csrftoken = Cookies.get('XSRF-TOKEN');
+
+        console.log(csrftoken);
+        // ,{headers:{'X-CSRFTOKEN': csrftoken}, withCredentials: true}
+        axios.post("/", {message: 'REACT SERVER MESSAGE'},{headers:{'dataType':'json'}})
+            .then(response => {console.log("test res: "+ response.config.data)});
       }
 
     

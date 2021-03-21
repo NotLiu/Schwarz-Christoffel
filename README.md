@@ -8,7 +8,7 @@ cd backend
 ### Setup and activate pipenv
 pip install pipenv (if you don't already have pipenv)
 pipenv shell
-### Install requirements, this is just Django at the moment
+### Install requirements, this is just Django, Django REST framework, and Django CORS headers at the moment
 pip install -r requirements.txt
 ### Setup Django, migrate is mainly used for database
 python manage.py migrate
@@ -27,7 +27,7 @@ python manage.py runserver
 	 	   -urls
 	  -SC	   -static	-build		-main.js
 		   		-templates	-index.html
-		   		-views.py
+		   		-views.py (backend anchorpoint)
 	  -manage.py
 	  -pipfile
 -frontend -node_modules
