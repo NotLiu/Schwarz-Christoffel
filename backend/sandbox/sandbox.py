@@ -11,9 +11,9 @@ square = Polygon([
     (1,0)
     ], True)
 
+
 sc = SchwarzChristoffel(square)
 sc.getParameters()
-
 test = Polygon([
     (0,0),
     (2,3),

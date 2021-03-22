@@ -2,6 +2,7 @@
 
 import operator
 import numpy as np
+from numpy.linalg import LinAlgError
 from scipy import special
 from scipy.optimize import newton
 from functools import reduce
@@ -58,19 +59,32 @@ class SchwarzChristoffel:
 
     def getParameters(self):
         J = self.generateJacobiMatrix(self.setI())
+        invJ = self.getInverseMatrix(J)
+        print(J, invJ)
+        
+    def getInverseMatrix(self, matrix):
+        inv = matrix
+        try:
+            inv = np.linalg.inv(matrix)
+        except LinAlgError as e:
+            if str(e) == "Singular matrix":
+                inv = matrix
+            else:
+                raise e
+        return inv
 
     def generateJacobiMatrix(self, I):
-        row = []
         column = []
         a = list(self.a.keys())
-
         #Create Jacobi matrix
         for i in range(len(I)):
+            row = []
             for j in range(self.N - 1):
                 #dI_{i}/da_{j}
                 row.append(self.calcSLFirstDerivative(I[i], a[j]))
             column.append(row)
-        J =  np.subtract(np.matrix(column), np.matrix(self.λ) * np.matrix([self.calcSLFirstDerivative(I[0], a[i]) for i in range(self.N - 1)]).T)
+        J = np.subtract(np.matrix(column), \
+             np.matrix(self.λ) * np.matrix([self.calcSLFirstDerivative(I[0], a[i]) for i in range(self.N - 1)]).T)
         return J
 
     # def getSideLengths(self, n=100):
