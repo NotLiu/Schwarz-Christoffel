@@ -12,11 +12,12 @@ class SchwarzChristoffel:
         self.N = len(polygon.vertices)
         self.a = self.approximateRealMapping()
         self.α = [float(self.polygon.extAngles[i])/np.pi for i in range(len(self.polygon.extAngles))]
-        print(self.α)
+        self.β = [1 - self.α[i] for i in range(len(self.α))]
         self.c1 = 1
         self.c2 = 0
-        self.λ = []
-        self.I = []
+        self.λ = [self.polygon.lines[i + 1].length / self.polygon.lines[0].length \
+            for i in range(len(self.polygon.lines) - 1)]
+        self.I = self.getI()
         self.F = []
         
     def approximateRealMapping(self):
@@ -30,29 +31,58 @@ class SchwarzChristoffel:
         mapping[float('inf')] = vertices[-1]
         return mapping
     
-    def getSideLengths(self, n=100):
-        #newton raphson
-        print('Finding Parameters')
-
-        internalf = lambda ζ, a, α: [ζ - a[j]**(α[j]-1) for j in range(self.N-1)]
+    def getI(self, n = 100):
+        '''
+        Isubaux1 = lambda i: (a[i + 1] - a[i]) ** (1 - b[i] - b[i + 1]) / 2
+        Isubaux2 = lambda j: lambda i: lambda x: 1 / ((a[i + 1] - a[i]) * x / 2 + (a[i + 1] + a[i]) / 2 - a[j])
+        Iaux = Isubaux1
+        for j in range(self.N):
+            if j != i and j != i + 1:
+                Iaux *= Isubaux2(j)
+        I[i] = gaussJacobiQuad(Iaux(i), -b[i+1], -b[i])
+        '''
+        I = [None for i in range(self.N - 1)]
         a = list(self.a.keys())
-        PiProd = lambda ζ: reduce(operator.mul, internalf(ζ, a, self.α))
+        β = self.β
+        Isubaux1 = lambda i: (a[i + 1] - a[i]) ** (1 - β[i] - β[i + 1]) / 2
+        Isubaux2 = lambda j : lambda i : lambda x : 1 / ((a[i + 1] - a[i]) * x / 2 + (a[i + 1] + a[i]) / 2 - a[j]) ** β[i]
+        Isubsubaux1 = lambda result, x, terms, i: result * Isubsubaux1(result, x, terms, i - 1) if i > 0 else result
+        Iaux = lambda i: lambda x: Isubaux1(i) * Isubsubaux1(1, x, terms, len(terms))
+        for i in range(self.N - 1):
+            terms = [Isubaux1]
+            for j in range(self.N - 1):
+                if j != i and j != i + 1:
+                    terms.append(Isubaux2(j))
+            _α = -β[i + 1]
+            _β = -β[i]
+            I[i] = self.gaussJacobiQuad(Iaux(i), _α, _β, n)
         
-        I = []
-        for i in range(self.N):
-            ζ = lambda u: (a[i+1]-a[i])*u/2 + (a[i+1]+a[i])/2
-            for j in range(self.N):
-                denom = lambda j: (ζ(j)-a[j])**self.α[j]
-                
-            integral = -1
-            I.append(integral)
-        #find accessory parameters a_{j} for j = 1, 2, ..., N - 1
-        
-        #sub any vertex of polygon and corresponding z plane
-        '''
-        self.c1 = z_i / int_{0}^{a_i} Pi_{j=1}^{N-1} (ζ - a_j)^a_{j-1} d-ζ        
-        '''
         return I
+    
+
+    # def getSideLengths(self, n=100):
+    #     #newton raphson
+    #     print('Finding Parameters')
+
+    #     internalf = lambda ζ, a, α: [ζ - a[j]**(α[j]-1) for j in range(self.N-1)]
+    #     a = list(self.a.keys())
+    #     PiProd = lambda ζ: reduce(operator.mul, internalf(ζ, a, self.α))
+        
+    #     I = []
+    #     for i in range(self.N):
+    #         ζ = lambda u: (a[i+1]-a[i])*u/2 + (a[i+1]+a[i])/2
+    #         for j in range(self.N):
+    #             denom = lambda j: (ζ(j)-a[j])**self.α[j]
+                
+    #         integral = -1
+    #         I.append(integral)
+    #     #find accessory parameters a_{j} for j = 1, 2, ..., N - 1
+        
+    #     #sub any vertex of polygon and corresponding z plane
+    #     '''
+    #     self.c1 = z_i / int_{0}^{a_i} Pi_{j=1}^{N-1} (ζ - a_j)^a_{j-1} d-ζ        
+    #     '''
+    #     return I
     
     def piProd(self, iterable):
         return reduce(operator.mul, iterable)
@@ -60,7 +90,7 @@ class SchwarzChristoffel:
     def gaussJacobiQuad(self, func, α = -0.1, β = -0.1, n = 10):
         result = special.j_roots(n, α, β)
         points, weights = result[0], result[1]
-        return sum([weights[i]*func(points[i]) for i in range(n)])
+        return sum([weights[x]*func(points[x]) for x in range(n)])
     
     def getSLFirstDerivative(self, i, a, h=0.01):
         return ( i*(a-2*h) - (8*i)*(a-h) + (8*i)*(a+h) - i*(a+2*h) )/(12*h)

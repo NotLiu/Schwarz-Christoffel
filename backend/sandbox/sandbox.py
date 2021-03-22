@@ -12,7 +12,6 @@ square = Polygon([
     ], True)
 
 sc = SchwarzChristoffel(square)
-sc.getParameters()
 #print(sc)
 
 test = Polygon([
