@@ -17,8 +17,7 @@ class SchwarzChristoffel:
         self.c2 = 0
         self.λ = [self.polygon.lines[i + 1].length / self.polygon.lines[0].length \
             for i in range(len(self.polygon.lines) - 1)]
-        self.I = self.getI()
-        self.F = []
+        self.F = self.setF()
         
     def approximateRealMapping(self):
         #map from real axis to z-plane vertices
@@ -31,16 +30,7 @@ class SchwarzChristoffel:
         mapping[float('inf')] = vertices[-1]
         return mapping
     
-    def getI(self, n = 100):
-        '''
-        Isubaux1 = lambda i: (a[i + 1] - a[i]) ** (1 - b[i] - b[i + 1]) / 2
-        Isubaux2 = lambda j: lambda i: lambda x: 1 / ((a[i + 1] - a[i]) * x / 2 + (a[i + 1] + a[i]) / 2 - a[j])
-        Iaux = Isubaux1
-        for j in range(self.N):
-            if j != i and j != i + 1:
-                Iaux *= Isubaux2(j)
-        I[i] = gaussJacobiQuad(Iaux(i), -b[i+1], -b[i])
-        '''
+    def setI(self, n = 100):
         I = [None for i in range(self.N - 1)]
         a = list(self.a.keys())
         β = self.β
@@ -59,6 +49,29 @@ class SchwarzChristoffel:
         
         return I
     
+    def setF(self):
+        F = []
+        for f in range(self.N - 1):
+            f = lambda I: I[f + 1] - self.λ[f + 1] * I[f]
+            F.append(f)
+        return F
+
+    def getParameters(self):
+        J = self.generateJacobiMatrix(self.setI())
+
+    def generateJacobiMatrix(self, I):
+        row = []
+        column = []
+        a = list(self.a.keys())
+
+        #Create Jacobi matrix
+        for i in range(len(I)):
+            for j in range(self.N - 1):
+                #dI_{i}/da_{j}
+                row.append(self.calcSLFirstDerivative(I[i], a[j]))
+            column.append(row)
+        J =  np.subtract(np.matrix(column), np.matrix(self.λ) * np.matrix([self.calcSLFirstDerivative(I[0], a[i]) for i in range(self.N - 1)]).T)
+        return J
 
     # def getSideLengths(self, n=100):
     #     #newton raphson
@@ -84,6 +97,11 @@ class SchwarzChristoffel:
     #     '''
     #     return I
     
+    def validateParams(self):
+        for f in self.F:
+            for i in range(self.N - 1):
+                if f(i) != 0:
+                    print("NOPE NO CAN DO")
     def piProd(self, iterable):
         return reduce(operator.mul, iterable)
 
@@ -92,7 +110,7 @@ class SchwarzChristoffel:
         points, weights = result[0], result[1]
         return sum([weights[x]*func(points[x]) for x in range(n)])
     
-    def getSLFirstDerivative(self, i, a, h=0.01):
+    def calcSLFirstDerivative(self, i, a, h=0.01):
         return ( i*(a-2*h) - (8*i)*(a-h) + (8*i)*(a+h) - i*(a+2*h) )/(12*h)
         
     def calc(self):
@@ -101,33 +119,4 @@ class SchwarzChristoffel:
             
     def __str__(self):
         return str(self.polygon)
-    
-    
-    
-# method for finding integral for (1-x)^-0.5 * (1+x)^-0.6 * (1+x^2)
- 
-'''
-f2 = lambda x: 1 + x**2 
-
-result = special.j_roots(10,-0.5,-0.6)
-
-points, weights = result[0], result[1]
-
-integral = 0
-for i in range(10):
-    integral += weights[i] * f2(points[i])
-    
-print(integral)
-'''
-
-'''
-Isubaux1 = lambda i: (a[i + 1] - a[i]) ** (1 - b[i] - b[i + 1]) / 2
-Isubaux2 = lambda j: lambda i: lambda x: 1 / ((a[i + 1] - a[i]) * x / 2 + (a[i + 1] + a[i]) / 2 - a[j])
-Iaux = Isubaux1
-for j in range(self.N):
-    if j != i and j != i + 1:
-        Iaux *= Isubaux2(j)
-I[i] = gaussJacobiQuad(Iaux(i), -b[i+1], -b[i])
-'''
-
 
