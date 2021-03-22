@@ -20,6 +20,11 @@ class App extends React.Component {
       gridSize: [-10, 10, -10, 10, 50, 50], //minx, maxx, miny, maxy, gridWidth, gridHeight
       vertices: [],
       articleId: null,
+      intAngles: [],
+      extAngles: [],
+      lineLengths: [],
+      lineSlopes: [],
+      polygon: false,
     };
   }
 
@@ -129,6 +134,14 @@ class App extends React.Component {
       // }
     }
 
+    function vertexPlotConversionX(vertex, xSep = 0) {
+      return vertex * gridWidth + originx + xSep;
+    }
+
+    function vertexPlotConversionY(vertex, ySep = 0) {
+      return -vertex * gridHeight + originy + ySep;
+    }
+
     p.setup = () => {
       p.createCanvas(canvasWidth, canvasHeight);
     };
@@ -221,13 +234,13 @@ class App extends React.Component {
       p.beginShape();
       for (let i = 0; i < this.state.vertices.length; i++) {
         p.circle(
-          this.state.vertices[i][0] * gridWidth + originx,
-          -this.state.vertices[i][1] * gridHeight + originy,
+          vertexPlotConversionX(this.state.vertices[i][0]),
+          vertexPlotConversionY(this.state.vertices[i][1]),
           3
         );
         p.vertex(
-          this.state.vertices[i][0] * gridWidth + originx,
-          -this.state.vertices[i][1] * gridHeight + originy
+          vertexPlotConversionX(this.state.vertices[i][0]),
+          vertexPlotConversionY(this.state.vertices[i][1])
         );
       }
       p.endShape();
@@ -243,6 +256,36 @@ class App extends React.Component {
         p.mouseX + 5,
         p.mouseY - 5
       );
+
+      //display angles
+
+      if (this.state.vertices.length > 2 && this.state.polygon) {
+        const angleTemp = [...this.state.extAngles];
+
+        // console.log(
+        //   parseFloat(angleTemp[angleTemp.length - 1].slice(5)).toFixed(2)
+        // );
+        p.text(
+          "∠ " +
+            parseFloat(angleTemp[angleTemp.length - 1].slice(5)).toFixed(2),
+          vertexPlotConversionX(
+            this.state.vertices[this.state.vertices.length - 1][0],
+            -25
+          ),
+          vertexPlotConversionY(
+            this.state.vertices[this.state.vertices.length - 1][1],
+            30
+          )
+        );
+
+        for (let i = 1; i < this.state.vertices.length; i++) {
+          p.text(
+            "∠ " + parseFloat(angleTemp[i].slice(5)).toFixed(2),
+            vertexPlotConversionX(this.state.vertices[i - 1][0], -25),
+            vertexPlotConversionY(this.state.vertices[i - 1][1], 30)
+          );
+        }
+      }
     };
 
     //plot point on coordinate plane
@@ -273,20 +316,36 @@ class App extends React.Component {
       ) {
         // create duplicate of state array and append new vertex
         const vertices = [...this.state.vertices, new_vert];
-        this.getAngle(vertices);
+        this.getPolyData(vertices);
         this.setState({ vertices });
       }
     };
   };
 
-  async getAngle(vertices) {
+  async getPolyData(vertices) {
     try {
       const angleSignal = await axios.post(
         "/data",
         { vertices },
         { headers: { dataType: "json" } }
       );
-      console.log(angleSignal);
+      this.state.intAngles = [...angleSignal.data["Interior Angles"]];
+      const intAngles = this.state.intAngles;
+      this.state.extAngles = [...angleSignal.data["Exterior Angles"]];
+      const extAngles = this.state.extAngles;
+      this.state.lineLengths = [...angleSignal.data["lineLengths"]];
+      const lineLens = this.state.lineLengths;
+      this.state.lineSlopes = [...angleSignal.data["lineSlopes"]];
+      const lineSlopes = this.lineSlopes;
+
+      this.setState({ intAngles });
+      this.setState({ extAngles });
+      this.setState({ lineLens });
+      this.setState({ lineSlopes });
+      this.setState({ polygon: true });
+
+      console.log(this.state.extAngles);
+      console.log(angleSignal.data);
     } catch (err) {
       console.log(err);
     }
