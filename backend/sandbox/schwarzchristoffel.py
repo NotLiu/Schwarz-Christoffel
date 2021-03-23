@@ -13,7 +13,7 @@ class SchwarzChristoffel:
         self.N = len(polygon.vertices)
         self.a = self.approximateRealMapping()
         self.α = [float(self.polygon.extAngles[i])/np.pi for i in range(len(self.polygon.extAngles))]
-        self.β = [1 - self.α[i] for i in range(len(self.α))]
+        self.β = [self.α[i] for i in range(len(self.α))]
         self.c1 = 1
         self.c2 = 0
         self.λ = [self.polygon.lines[i + 1].length / self.polygon.lines[0].length \
@@ -35,6 +35,7 @@ class SchwarzChristoffel:
         I = [None for i in range(self.N - 1)]
         a = list(self.a.keys())
         β = self.β
+        #TO DO, we need an absolute value here, but i forgot where
         Isubaux1 = lambda i: (a[i + 1] - a[i]) ** (1 - β[i] - β[i + 1]) / 2
         Isubaux2 = lambda j : lambda i : lambda x : 1 / ((a[i + 1] - a[i]) * x / 2 + (a[i + 1] + a[i]) / 2 - a[j]) ** β[i]
         Isubsubaux1 = lambda result, x, terms, i: result * Isubsubaux1(result, x, terms, i - 1) if i > 0 else result
@@ -47,7 +48,6 @@ class SchwarzChristoffel:
             _α = -β[i + 1]
             _β = -β[i]
             I[i] = self.gaussJacobiQuad(Iaux(i), _α, _β, n)
-        
         return I
     
     def setF(self):
@@ -60,8 +60,8 @@ class SchwarzChristoffel:
     def getParameters(self):
         J = self.generateJacobiMatrix(self.setI())
         invJ = self.getInverseMatrix(J)
-        print(J, invJ)
-        
+        print(J)
+
     def getInverseMatrix(self, matrix):
         inv = matrix
         try:
