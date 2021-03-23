@@ -60,7 +60,6 @@ class SchwarzChristoffel:
     def getParameters(self):
         J = self.generateJacobiMatrix(self.setI())
         invJ = self.getInverseMatrix(J)
-        print(J)
 
     def getInverseMatrix(self, matrix):
         inv = matrix
