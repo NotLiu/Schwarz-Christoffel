@@ -14,6 +14,7 @@ square = Polygon([
 
 sc = SchwarzChristoffel(square)
 sc.getParameters()
+
 test = Polygon([
     (0,0),
     (2,3),
@@ -74,6 +75,10 @@ test4 = Polygon([
     (-2,3),
     (-2,0)
     ], True)
+
+
+# sc = SchwarzChristoffel(test3)
+# sc.getParameters()
 
 #print(square)
 #print(test)
