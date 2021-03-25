@@ -285,14 +285,14 @@ class App extends React.Component {
             vertexPlotConversionY(this.state.vertices[i - 1][1], 30)
           );
         }
-
-        //flag to make sure data is set before rendering
-        this.setState({ polygon: false });
       }
     };
 
     //plot point on coordinate plane
     p.mouseClicked = () => {
+      //flag to make sure data is set before rendering
+      this.setState({ polygon: false });
+
       //add new vertices;
       let new_vert = [
         customRoundX(p.mouseX, gridWidth).toFixed(2),
