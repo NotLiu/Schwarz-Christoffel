@@ -31,8 +31,8 @@ def data_transfer(request):
             
             print(poly)
             for i  in range(len(vertList)):
-                lineLens.append(poly.lines[i].getLength())
-                lineSlopes.append(poly.lines[i].getSlope())
+                lineLens.append(str(poly.lines[i].v1.label)+"<->"+str(poly.lines[i].v2.label)+":  "+str(poly.lines[i].getLength()))
+                lineSlopes.append(str(poly.lines[i].v1.label)+"<->"+str(poly.lines[i].v2.label)+":  "+str(poly.lines[i].getSlope()))
                 polyIntAngles.append(str(poly.intAngles[i]))
                 polyExtAngles.append(str(poly.extAngles[i]))
 

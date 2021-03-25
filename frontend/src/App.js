@@ -285,6 +285,9 @@ class App extends React.Component {
             vertexPlotConversionY(this.state.vertices[i - 1][1], 30)
           );
         }
+
+        //flag to make sure data is set before rendering
+        this.setState({ polygon: false });
       }
     };
 
@@ -336,7 +339,7 @@ class App extends React.Component {
       this.state.lineLengths = [...angleSignal.data["lineLengths"]];
       const lineLens = this.state.lineLengths;
       this.state.lineSlopes = [...angleSignal.data["lineSlopes"]];
-      const lineSlopes = this.lineSlopes;
+      const lineSlopes = this.state.lineSlopes;
 
       this.setState({ intAngles });
       this.setState({ extAngles });
@@ -344,7 +347,8 @@ class App extends React.Component {
       this.setState({ lineSlopes });
       this.setState({ polygon: true });
 
-      console.log(this.state.extAngles);
+      // console.log("EEEEERGERGERG");
+      // console.log([...this.state.extAngles]);
       console.log(angleSignal.data);
     } catch (err) {
       console.log(err);
@@ -362,23 +366,64 @@ class App extends React.Component {
   }
 
   render() {
-    const onClick = () => {
+    const onClickVert = () => {
       this.setState({ vertices: [] });
+      this.setState({ intAngles: [] });
+      this.setState({ extAngles: [] });
+      this.setState({ lineLengths: [] });
+      this.setState({ lineSlopes: [] });
     };
     const listItems = this.state.vertices.map((vertex, index) => (
-      <li key={index}>({vertex})</li>
+      <li key={index}>
+        ({vertex[0]},{vertex[1]})
+      </li>
+    ));
+    const extAnglesList = this.state.extAngles.map((angle, index) => (
+      <li key={index}>
+        ({angle.slice(0, 5) + parseFloat(angle.slice(5)).toFixed(2)})
+      </li>
+    ));
+    const intAnglesList = this.state.intAngles.map((angle, index) => (
+      <li key={index}>
+        ({angle.slice(0, 5) + parseFloat(angle.slice(5)).toFixed(2)})
+      </li>
+    ));
+    const lineLenList = this.state.lineLengths.map((len, index) => (
+      <li key={index}>
+        ({len.slice(0, 7) + parseFloat(len.slice(7)).toFixed(2)})
+      </li>
+    ));
+    const lineSlopeList = this.state.lineSlopes.map((slope, index) => (
+      <li key={index}>
+        ({slope.slice(0, 7) + parseFloat(slope.slice(7)).toFixed(2)})
+      </li>
     ));
 
-    console.log("vertices", listItems);
     return (
       <div id="cont">
         <div ref={this.myRef}></div>
 
         <div id="vertexBox">
-          <div id="box">
+          <div className="box">
             VERTICES
             <ul>{listItems}</ul>
-            <button onClick={onClick}>Clear</button>
+            <button onClick={onClickVert}>Clear</button>
+          </div>
+          <div className="box">
+            EXTERIOR ANGLES
+            <ul>{extAnglesList}</ul>
+          </div>
+          <div className="box">
+            INTERIOR ANGLES
+            <ul>{intAnglesList}</ul>
+          </div>
+          <div className="box">
+            LINE LENGTHS
+            <ul>{lineLenList}</ul>
+          </div>
+          <div className="box">
+            LINE SLOPES
+            <ul>{lineSlopeList}</ul>
           </div>
         </div>
       </div>
