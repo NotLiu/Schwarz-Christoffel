@@ -84,7 +84,7 @@ class Angle:
         x1, y1 = p1.x - ref.x, p1.y - ref.y
         x2, y2 = p2.x - ref.x, p2.y - ref.y
         
-        cross_sign = x1 * y2 > x2 * y1
+        cross_sign = x1 * y2 < x2 * y1
         
         numer = (x1 * x2 + y1 * y2) 
         denom = math.sqrt( (x1 ** 2 + y1 ** 2) * (x2 ** 2 + y2 ** 2) )
