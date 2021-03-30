@@ -49,7 +49,7 @@ test3 = Polygon([
     (2,0)
     ])
 
-test3 = Polygon([
+test3list = [
     (0,0),
     (2,2),
     (0,4),
@@ -62,7 +62,11 @@ test3 = Polygon([
     (2,4),
     (4,4),
     (4,0)
-    ], True)
+    ]
+
+test3list.reverse()
+
+test3 = Polygon(test3list, True)
 
 test4 = Polygon([
     (0,0),
@@ -83,7 +87,7 @@ rect = Polygon([
 
 #print(rect)
 
-sc = SchwarzChristoffel(square)
+sc = SchwarzChristoffel(test3)
 sc.getParameters()
 
 #print(square)

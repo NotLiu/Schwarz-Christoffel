@@ -39,7 +39,7 @@ class SchwarzChristoffel:
     def calcI(self, a = None, aDirIndex = None, hModifier = 0):
         #a is a list here
         I = [None for i in range(self.N - 1)]
-        a = list(self.a.keys())
+        a = list(self.a.keys()) if a is None else a
 
         if aDirIndex is not None:
             a[aDirIndex] = a[aDirIndex] + hModifier
@@ -56,7 +56,7 @@ class SchwarzChristoffel:
         def findIAux(result, x, i, index): return result * findIAux(result,
                                                                            x, i, index - 1) if index > 0 else terms[index](i)(x)
 
-        for i in range(self.N - 1):
+        for i in range(self.N-1):
             terms = []
             for j in range(self.N - 1):
                 if j != i and j != i + 1:
@@ -69,31 +69,38 @@ class SchwarzChristoffel:
 
     def setF(self):
         F = []
-        for i in range(1, self.N - 1):
+        for i in range(-1, len(self.λ)-1):
             def f(I):
-                print(i)
-                return I[i + 1] - self.λ[i + 1] * I[i]
+                return I[0] - self.λ[i + 1][0] * I[i]
             F.append(f)
         return F
 
     def getParameters(self):
-        while sum(list(self.a.keys())) / len(self.a.keys()) > 0.1:
-            I = self.calcI()
+        a_keys = list(self.a.keys())
+        a_keys = np.reshape(a_keys, (len(self.a),1))
+        aPrev_keys = None
+        values = list(self.a.values())
+        
+        while not self.validateParams(a_keys, aPrev_keys):
+            I = self.calcI(a_keys)
+            F = np.reshape([func(I) for func in self.F], (len(self.F),1))
             J = self.generateJacobiMatrix(I)
             invJ = self.getInverseMatrix(J)
-            keys = list(self.a.keys())
-            values = list(self.a.values())
             
-            self.a = {}
-            for k in range(self.N - 1):
-                print("uwu")
-                print(self.F[k](I))
-                print('owo')
-                # print()
-                #print(k, keys[k], invJ[k], self.F[k], I)
-                # print()
-                self.a[keys[k + 1]] = keys[k] - np.matmul(invJ[k], self.F[k](I))
-                print(keys)
+            
+            aPrev_keys = a_keys
+            a_keys, aPrev_keys = a_keys[2:], aPrev_keys[2:]
+            a_keys = a_keys - np.matmul(invJ, F)
+
+        firstTwo = list(self.a.keys())[:2]
+        self.a = {}
+        self.a[firstTwo[0]] = values[0]
+        self.a[firstTwo[1]] = values[1]
+
+        for aIndex in range(len(a_keys)):
+            self.a[float(a_keys[aIndex])] = values[2 + aIndex]
+
+            
                 
     def getInverseMatrix(self, matrix):
         inv = matrix
@@ -147,11 +154,13 @@ class SchwarzChristoffel:
     #     '''
     #     return I
 
-    def validateParams(self):
-        for f in self.F:
-            for i in range(self.N - 1):
-                if f(i) != 0:
-                    print("NOPE NO CAN DO")
+    #If all δ's are above acceptableError, return True, else false
+    def validateParams(self, a=None, aPrev=None, acceptableError=10 ** -5):
+        if a is None or aPrev is None: return False
+        for k in range(len(a)):
+            δ = abs(a[k] - aPrev[k])
+            if δ > acceptableError: return False
+        return True
 
     def piProd(self, iterable):
         return reduce(operator.mul, iterable)
