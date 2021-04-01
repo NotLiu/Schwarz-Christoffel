@@ -23,6 +23,7 @@ class SchwarzChristoffel:
         #exterial angles within -1 and 1
         self.β = [float(self.polygon.extAngles[i]) /
                   np.pi for i in range(len(self.polygon.extAngles))]
+        
         self.c1 = 1
         self.c2 = 0
 
@@ -63,20 +64,19 @@ class SchwarzChristoffel:
         def findI_JTerm(j): return lambda i: lambda x: 1 / \
             abs(((a[i + 1] - a[i]) * x / 2 + (a[i + 1] + a[i]) / 2 - a[j])) ** self.β[j]
         
-        def findI(i): return lambda x: findIConstant(
-            i) * findIAux(1, x, i, len(terms) - 1)
+        def findI(i, terms): return lambda x: findIConstant(
+            i) * findIAux(1, x, i, terms, len(terms) - 1) 
         
-        def findIAux(result, x, i, index): return result * findIAux(result,
-                                                                           x, i, index - 1) if index > 0 else terms[index](i)(x)
+        def findIAux(result, x, i, terms, index): return result * findIAux(result, x, i, terms, index - 1) if index > 0 else terms[index](i)(x)
 
         for i in range(self.N - 1):
             terms = []
-            for j in aRange:
-                terms.append(findI_JTerm(j))
+            for j in range(self.N - 1):
+                if j != i and j != i + 1:
+                    terms.append(findI_JTerm(j))
             α = -self.β[i]
             β = -self.β[i-1]
-            I[i] = self.gaussJacobiQuad(findI(i), α, β)
-        I = I[1:]
+            I[i] = self.gaussJacobiQuad(findI(i, terms), α, β)
         return I
 
     def setF(self):
