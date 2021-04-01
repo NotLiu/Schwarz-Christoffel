@@ -29,3 +29,6 @@ ul {
 li {
   list-style: none;
 }
+.svgText {
+  pointer-events: none;
+}

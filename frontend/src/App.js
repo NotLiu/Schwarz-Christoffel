@@ -24,6 +24,7 @@ class App extends React.Component {
       lineLengths: [],
       lineSlopes: [],
       polygon: false,
+      mouseCoords: [0, 0],
     };
 
     this.canvasWidth = 900;
@@ -51,63 +52,11 @@ class App extends React.Component {
     this.endGridX = this.state.gridSize[3];
 
     this.svg = React.createRef();
-    this.alert_coords = this.alert_coords.bind(this);
-  }
 
-  customRoundX(x, round) {
-    var temp_round = (Math.abs(x) - originx) / round;
-
-    return temp_round;
-    // //round to closest integer coordinate
-    // if(Math.abs(temp_round)%1<0.5){
-    //     if(Math.sign(temp_round)<0){ //if negative, reverse rounding
-    //         return Math.ceil(temp_round);
-    //     }
-    //     else{
-    //         return Math.floor(temp_round);
-    //     }
-
-    // }
-    // else{
-    //     if(Math.sign(temp_round)<0){
-    //         return Math.floor(temp_round);
-    //     }
-    //     else{
-    //         return Math.ceil(temp_round);
-    //     }
-    // }
-  }
-  customRoundY(y, round) {
-    //negative return values because pixel coordinates run opposite vertically
-    var temp_round = (Math.abs(y) - originy) / round;
-
-    return temp_round;
-    // //round to closest integer coordinate
-    // if(Math.abs(temp_round)%1<0.5){
-    //     if(Math.sign(temp_round)<0){ //if negative, reverse rounding
-    //         return -Math.ceil(temp_round);
-    //     }
-    //     else{
-    //         return -Math.floor(temp_round);
-    //     }
-
-    // }
-    // else{
-    //     if(Math.sign(temp_round)<0){
-    //         return -Math.floor(temp_round);
-    //     }
-    //     else{
-    //         return -Math.ceil(temp_round);
-    //     }
-    // }
-  }
-
-  vertexPlotConversionX(vertex, xSep = 0) {
-    return vertex * gridWidth + originx + xSep;
-  }
-
-  vertexPlotConversionY(vertex, ySep = 0) {
-    return -vertex * gridHeight + originy + ySep;
+    //bind functions
+    this.changeMouseCoords = this.changeMouseCoords.bind(this);
+    this.customRoundX = this.customRoundX.bind(this);
+    this.customRoundY = this.customRoundY.bind(this);
   }
 
   // Sketch = (p) => {
@@ -407,6 +356,41 @@ class App extends React.Component {
   //   };
   // };
 
+  // mouseClicked() {
+  //   //flag to make sure data is set before rendering
+  //   this.setState({ polygon: false });
+  //   //add new vertices;
+  //     let new_vert = [
+  //       this.customRoundX(this.state.mouseCoords[0], this.gridWidth).toFixed(2),
+  //       (-this.customRoundY(this.state.mouseCoords[1], this.gridHeight)).toFixed(2),
+  //     ];
+  //     let flag = 0;
+
+  //     for (let i = 0; i < this.state.vertices.length; i++) {
+  //       if (
+  //         this.state.vertices[i][0] == new_vert[0] &&
+  //         this.state.vertices[i][1] == new_vert[1]
+  //       ) {
+  //         flag = 1;
+  //         break;
+  //       }
+  //     }
+
+  //     if (
+  //       flag == 0 &&
+  //       p.mouseX < canvasWidth &&
+  //       p.mouseX > 0 &&
+  //       p.mouseY > 0 &&
+  //       p.mouseY < canvasHeight
+  //     ) {
+  //       // create duplicate of state array and append new vertex
+  //       const vertices = [...this.state.vertices, new_vert];
+  //       this.getPolyData(vertices);
+  //       this.setState({ vertices });
+  //     }
+  //   };
+  // }
+
   async getPolyData(vertices) {
     try {
       const angleSignal = await axios.post(
@@ -436,8 +420,63 @@ class App extends React.Component {
       console.log(err);
     }
   }
+  customRoundX(x, round) {
+    var temp_round = (Math.abs(x) - this.originx) / round;
 
-  alert_coords(evt) {
+    return temp_round;
+    // //round to closest integer coordinate
+    // if(Math.abs(temp_round)%1<0.5){
+    //     if(Math.sign(temp_round)<0){ //if negative, reverse rounding
+    //         return Math.ceil(temp_round);
+    //     }
+    //     else{
+    //         return Math.floor(temp_round);
+    //     }
+
+    // }
+    // else{
+    //     if(Math.sign(temp_round)<0){
+    //         return Math.floor(temp_round);
+    //     }
+    //     else{
+    //         return Math.ceil(temp_round);
+    //     }
+    // }
+  }
+  customRoundY(y, round) {
+    //negative return values because pixel coordinates run opposite vertically
+    var temp_round = (Math.abs(y) - this.originy) / round;
+
+    return temp_round;
+    // //round to closest integer coordinate
+    // if(Math.abs(temp_round)%1<0.5){
+    //     if(Math.sign(temp_round)<0){ //if negative, reverse rounding
+    //         return -Math.ceil(temp_round);
+    //     }
+    //     else{
+    //         return -Math.floor(temp_round);
+    //     }
+
+    // }
+    // else{
+    //     if(Math.sign(temp_round)<0){
+    //         return -Math.floor(temp_round);
+    //     }
+    //     else{
+    //         return -Math.ceil(temp_round);
+    //     }
+    // }
+  }
+
+  vertexPlotConversionX(vertex, xSep = 0) {
+    return vertex * gridWidth + originx + xSep;
+  }
+
+  vertexPlotConversionY(vertex, ySep = 0) {
+    return -vertex * gridHeight + originy + ySep;
+  }
+
+  changeMouseCoords(evt) {
     console.log(this.svg.current);
     const pt = this.svg.current.createSVGPoint();
     pt.x = evt.clientX;
@@ -446,7 +485,12 @@ class App extends React.Component {
     let cursorpt = pt.matrixTransform(
       this.svg.current.getScreenCTM().inverse()
     );
-    console.log("(" + cursorpt.x + ", " + cursorpt.y + ")");
+    this.state.mouseCoords[0] = cursorpt.x;
+    this.state.mouseCoords[1] = cursorpt.y;
+
+    const mouseCoords = this.state.mouseCoords;
+
+    this.setState({ mouseCoords });
   }
 
   componentDidMount() {
@@ -566,10 +610,16 @@ class App extends React.Component {
         x={this.canvasWidth - 18}
         y={this.originy - 9}
         style={{ font: "20px helvetica bold" }}
+        className="svgText"
       >
         x
       </text>,
-      <text x={this.originx + 9} y={17} style={{ font: "20px helvetica bold" }}>
+      <text
+        x={this.originx + 9}
+        y={17}
+        style={{ font: "20px helvetica bold" }}
+        className="svgText"
+      >
         y
       </text>,
     ]);
@@ -604,7 +654,7 @@ class App extends React.Component {
     } else if (this.state.gridSize[3] < 0) {
       originy = 0;
     }
-
+    console.log(this.mouseCoords);
     return (
       <div id="cont">
         {/* <div ref={this.myRef}></div> */}
@@ -615,9 +665,32 @@ class App extends React.Component {
             height={this.canvasHeight}
             style={{ backgroundColor: "FloralWhite" }}
             ref={this.svg}
-            onClick={this.alert_coords}
+            onMouseMove={this.changeMouseCoords}
           >
             <g id="planeFrame">{cPlane}</g>
+            <g id="planeData">
+              <text
+                x={this.state.mouseCoords[0] + 5}
+                y={this.state.mouseCoords[1] + 15}
+                style={{ font: "32px helvetica bold", fontWeight: "bold" }}
+                className="svgText"
+              >
+                (
+                {this.customRoundX(
+                  this.state.mouseCoords[0],
+                  this.gridWidth
+                ).toFixed(2)}
+                ,
+                {
+                  -this.customRoundY(
+                    this.state.mouseCoords[1],
+                    this.gridHeight
+                  ).toFixed(2)
+                }
+                )
+              </text>
+              <g></g>
+            </g>
           </svg>
         </div>
         <div id="vertexBox">
