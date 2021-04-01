@@ -57,6 +57,7 @@ class App extends React.Component {
     this.changeMouseCoords = this.changeMouseCoords.bind(this);
     this.customRoundX = this.customRoundX.bind(this);
     this.customRoundY = this.customRoundY.bind(this);
+    this.mouseClicked = this.mouseClicked.bind(this);
   }
 
   // Sketch = (p) => {
@@ -356,41 +357,6 @@ class App extends React.Component {
   //   };
   // };
 
-  // mouseClicked() {
-  //   //flag to make sure data is set before rendering
-  //   this.setState({ polygon: false });
-  //   //add new vertices;
-  //     let new_vert = [
-  //       this.customRoundX(this.state.mouseCoords[0], this.gridWidth).toFixed(2),
-  //       (-this.customRoundY(this.state.mouseCoords[1], this.gridHeight)).toFixed(2),
-  //     ];
-  //     let flag = 0;
-
-  //     for (let i = 0; i < this.state.vertices.length; i++) {
-  //       if (
-  //         this.state.vertices[i][0] == new_vert[0] &&
-  //         this.state.vertices[i][1] == new_vert[1]
-  //       ) {
-  //         flag = 1;
-  //         break;
-  //       }
-  //     }
-
-  //     if (
-  //       flag == 0 &&
-  //       p.mouseX < canvasWidth &&
-  //       p.mouseX > 0 &&
-  //       p.mouseY > 0 &&
-  //       p.mouseY < canvasHeight
-  //     ) {
-  //       // create duplicate of state array and append new vertex
-  //       const vertices = [...this.state.vertices, new_vert];
-  //       this.getPolyData(vertices);
-  //       this.setState({ vertices });
-  //     }
-  //   };
-  // }
-
   async getPolyData(vertices) {
     try {
       const angleSignal = await axios.post(
@@ -476,8 +442,43 @@ class App extends React.Component {
     return -vertex * gridHeight + originy + ySep;
   }
 
+  mouseClicked() {
+    // //flag to make sure data is set before rendering
+    // this.setState({ polygon: false });
+    //add new vertices;
+    let new_vert = [
+      this.customRoundX(this.state.mouseCoords[0], this.gridWidth).toFixed(2),
+      -this.customRoundY(this.state.mouseCoords[1], this.gridHeight).toFixed(2),
+    ];
+    let flag = 0;
+
+    for (let i = 0; i < this.state.vertices.length; i++) {
+      if (
+        this.state.vertices[i][0] == new_vert[0] &&
+        this.state.vertices[i][1] == new_vert[1]
+      ) {
+        flag = 1;
+        break;
+      }
+    }
+
+    if (
+      flag == 0 &&
+      this.state.mouseCoords[0] < this.canvasWidth &&
+      this.state.mouseCoords[0] > 0 &&
+      this.state.mouseCoords[1] > 0 &&
+      this.state.mouseCoords[1] < this.canvasHeight
+    ) {
+      // create duplicate of state array and append new vertex
+      const vertices = [...this.state.vertices, new_vert];
+      this.getPolyData(vertices);
+      this.setState({ vertices });
+    }
+    console.log(this.state.vertices);
+  }
+
   changeMouseCoords(evt) {
-    console.log(this.svg.current);
+    // console.log(this.svg.current);
     const pt = this.svg.current.createSVGPoint();
     pt.x = evt.clientX;
     pt.y = evt.clientY;
@@ -545,7 +546,7 @@ class App extends React.Component {
             y1={0}
             x2={this.originx + i * this.gridWidth}
             y2={this.canvasHeight}
-            stroke="DarkSlateGray"
+            stroke="DarkSeaGreen"
             strokeWidth="1"
           />
         );
@@ -556,7 +557,7 @@ class App extends React.Component {
             y1={this.originy - j * this.gridHeight}
             x2={this.canvasWidth}
             y2={this.originy - j * this.gridHeight}
-            stroke="DarkSlateGray"
+            stroke="DarkSeaGreen"
             strokeWidth="1"
           />
         );
@@ -654,7 +655,7 @@ class App extends React.Component {
     } else if (this.state.gridSize[3] < 0) {
       originy = 0;
     }
-    console.log(this.mouseCoords);
+    // console.log(this.mouseCoords);
     return (
       <div id="cont">
         {/* <div ref={this.myRef}></div> */}
@@ -666,12 +667,13 @@ class App extends React.Component {
             style={{ backgroundColor: "FloralWhite" }}
             ref={this.svg}
             onMouseMove={this.changeMouseCoords}
+            onMouseDown={this.mouseClicked}
           >
             <g id="planeFrame">{cPlane}</g>
             <g id="planeData">
               <text
                 x={this.state.mouseCoords[0] + 5}
-                y={this.state.mouseCoords[1] + 15}
+                y={this.state.mouseCoords[1] - 5}
                 style={{ font: "32px helvetica bold", fontWeight: "bold" }}
                 className="svgText"
               >
