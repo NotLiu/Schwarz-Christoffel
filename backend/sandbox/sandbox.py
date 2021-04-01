@@ -87,7 +87,7 @@ rect = Polygon([
 
 #print(rect)
 
-sc = SchwarzChristoffel(test3)
+sc = SchwarzChristoffel(test)
 sc.getParameters()
 
 #print(square)

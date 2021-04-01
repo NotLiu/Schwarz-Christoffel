@@ -10,21 +10,32 @@ from functools import reduce
 
 class SchwarzChristoffel:
     def __init__(self, polygon):
+
+        #Polygon object, with vertices, lines, and angle nested objects
         self.polygon = polygon
+
+        #Number of vertices
         self.N = len(polygon.vertices)
+
+        #Points on the ζ-plane, using -1 and 1 as our two initial guesses and mapping the rest in increments of 1
         self.a = self.approximateRealMapping()
+
+        #exterial angles within -1 and 1
         self.β = [float(self.polygon.extAngles[i]) /
                   np.pi for i in range(len(self.polygon.extAngles))]
         self.c1 = 1
         self.c2 = 0
 
+        #column vector of length ratios of all sides with respect to initial two guesses a{0} and a{1}'s z plane distances        
         self.λ = [self.polygon.lines[i + 1].length / self.polygon.lines[0].length
-                  for i in range(1, len(self.polygon.lines) - 1)]
+                  for i in range(len(self.polygon.lines) - 2)]
         self.λ = np.reshape(self.λ, (len(self.λ), 1))
 
+        #list of functions in the form I_{i} - λ_{i}*I{l} = 0, where l is our first initial guess. in this case, l = 0, since our guesses are a_{0} and a_{1}
         self.F = self.setF()
-        self.δ = []
 
+        print('BEFORE:', self.a)
+        
     def approximateRealMapping(self):
         # map from real axis to z-plane vertices
         # start with -1, 1, ... N + 2, starting from a_3 mappings, last one inf or arbitrary
@@ -36,16 +47,18 @@ class SchwarzChristoffel:
         #mapping[float('inf')] = vertices[-1]
         return mapping
 
-    def calcI(self, a = None, aDirIndex = None, hModifier = 0):
-        #a is a list here
+    def calcI(self, a=None, aDirIndex=None, hModifier=0):
+                #a is a list here
+        Irange = range(self.N - 1)
+        aRange = range(2, self.N - 1)
         I = [None for i in range(self.N - 1)]
         a = list(self.a.keys()) if a is None else a
 
         if aDirIndex is not None:
             a[aDirIndex] = a[aDirIndex] + hModifier
 
-        def findIConstant(i): return (
-            (a[i + 1] - a[i]) / 2) ** (1 - self.β[i] - self.β[i + 1])
+        def findIConstant(i):
+            return ((a[i + 1] - a[i]) / 2) ** (1 - self.β[i] - self.β[i + 1])
 
         def findI_JTerm(j): return lambda i: lambda x: 1 / \
             abs(((a[i + 1] - a[i]) * x / 2 + (a[i + 1] + a[i]) / 2 - a[j])) ** self.β[j]
@@ -56,40 +69,38 @@ class SchwarzChristoffel:
         def findIAux(result, x, i, index): return result * findIAux(result,
                                                                            x, i, index - 1) if index > 0 else terms[index](i)(x)
 
-        for i in range(self.N-1):
+        for i in range(self.N - 1):
             terms = []
-            for j in range(self.N - 1):
-                if j != i and j != i + 1:
-                    terms.append(findI_JTerm(j))
-            α = -self.β[i + 1]
-            β = -self.β[i]
+            for j in aRange:
+                terms.append(findI_JTerm(j))
+            α = -self.β[i]
+            β = -self.β[i-1]
             I[i] = self.gaussJacobiQuad(findI(i), α, β)
-
+        I = I[1:]
         return I
 
     def setF(self):
         F = []
-        for i in range(-1, len(self.λ)-1):
+        for i in range(len(self.λ)):
             def f(I):
-                return I[0] - self.λ[i + 1][0] * I[i]
+                return I[i] - self.λ[i][0] * I[0]
             F.append(f)
         return F
 
     def getParameters(self):
         a_keys = list(self.a.keys())
-        a_keys = np.reshape(a_keys, (len(self.a),1))
         aPrev_keys = None
         values = list(self.a.values())
         
         while not self.validateParams(a_keys, aPrev_keys):
             I = self.calcI(a_keys)
-            F = np.reshape([func(I) for func in self.F], (len(self.F),1))
+            F = np.reshape([func(I) for func in self.F], (len(self.F), 1))
             J = self.generateJacobiMatrix(I)
             invJ = self.getInverseMatrix(J)
             
-            
             aPrev_keys = a_keys
             a_keys, aPrev_keys = a_keys[2:], aPrev_keys[2:]
+            a_keys, aPrev_keys = np.reshape(a_keys, (len(a_keys), 1)), np.reshape(a_keys, (len(aPrev_keys), 1))
             a_keys = a_keys - np.matmul(invJ, F)
 
         firstTwo = list(self.a.keys())[:2]
@@ -100,6 +111,7 @@ class SchwarzChristoffel:
         for aIndex in range(len(a_keys)):
             self.a[float(a_keys[aIndex])] = values[2 + aIndex]
 
+        print('AFTER:',self.a)
             
                 
     def getInverseMatrix(self, matrix):
@@ -117,17 +129,16 @@ class SchwarzChristoffel:
         column = []
         a = list(self.a.keys())
         # Create Jacobi matrix
-        for i in range(1, self.N - 1):
+        for i in range(self.N - 2):
             row = []
-            for j in range(self.N):
-                # dI_{i}/da_{j}
-                if j != 0 and j != 1:
-                    #row.append(f'{i}{j}')
-                    row.append(self.calcSLFirstDerivative(a, i, j))
+            for j in range(self.N - 2):
+                row.append(self.calcSLFirstDerivative(a, i, j))
             column.append(row)
+        derivativeMatrix = np.reshape(column, (len(row), len(column)))
         
-        J = np.subtract(np.matrix(column),
-                        np.matrix(self.λ) * np.matrix([self.calcSLFirstDerivative(a, 0, i) for i in range(self.N - 1) if i != 0 and i != 1]).T)
+        derivativeColumn = np.matrix([self.calcSLFirstDerivative(a, 0, i) for i in range(1, self.N - 2)]).T
+        rightTerm = self.λ * derivativeColumn
+        J = np.subtract(derivativeMatrix, self.λ * derivativeColumn)
         return J
 
     # def getSideLengths(self, n=100):
@@ -172,7 +183,7 @@ class SchwarzChristoffel:
 
     def calcSLFirstDerivative(self, a, iVal, aDirIndex, h=0.01):
         #match the equation:
-        # ðIk/ðai ~ [Ik(ai - 2h) - 8Ik(a-h) + 8Ik(ai + h) - Ik(ai + 2h)]/12h
+        # ðIk/ðai ~ [Ik(ai - 2h) - 8Ik(ai-h) + 8Ik(ai + h) - Ik(ai + 2h)]/12h
         term1 = self.calcI(a, aDirIndex, -2 * h)[iVal]
         term2 = 8*self.calcI(a, aDirIndex, -h)[iVal]
         term3 = 8*self.calcI(a, aDirIndex, h)[iVal]
