@@ -25,10 +25,11 @@ class App extends React.Component {
       lineSlopes: [],
       polygon: false,
       mouseCoords: [0, 0],
+      planePlotVertices: [],
     };
 
-    this.canvasWidth = 900;
-    this.canvasHeight = 900;
+    this.canvasWidth = 500;
+    this.canvasHeight = 500;
     this.gridHeight =
       this.canvasHeight /
       (Math.abs(this.state.gridSize[3]) + Math.abs(this.state.gridSize[2]));
@@ -58,6 +59,9 @@ class App extends React.Component {
     this.customRoundX = this.customRoundX.bind(this);
     this.customRoundY = this.customRoundY.bind(this);
     this.mouseClicked = this.mouseClicked.bind(this);
+    this.vertexPlotConversionX = this.vertexPlotConversionX.bind(this);
+    this.vertexPlotConversionY = this.vertexPlotConversionY.bind(this);
+    this.plotVertices = this.plotVertices.bind(this);
   }
 
   // Sketch = (p) => {
@@ -435,11 +439,11 @@ class App extends React.Component {
   }
 
   vertexPlotConversionX(vertex, xSep = 0) {
-    return vertex * gridWidth + originx + xSep;
+    return vertex * this.gridWidth + this.originx + xSep;
   }
 
   vertexPlotConversionY(vertex, ySep = 0) {
-    return -vertex * gridHeight + originy + ySep;
+    return -vertex * this.gridHeight + this.originy + ySep;
   }
 
   mouseClicked() {
@@ -474,7 +478,7 @@ class App extends React.Component {
       this.getPolyData(vertices);
       this.setState({ vertices });
     }
-    console.log(this.state.vertices);
+    this.plotVertices(new_vert);
   }
 
   changeMouseCoords(evt) {
@@ -494,6 +498,32 @@ class App extends React.Component {
     this.setState({ mouseCoords });
   }
 
+  // for (let i = 0; i < this.state.vertices.length; i++) {
+  //   //       p.circle(
+  //   //         vertexPlotConversionX(this.state.vertices[i][0]),
+  //   //         vertexPlotConversionY(this.state.vertices[i][1]),
+  //   //         3
+  //   //       );
+  //   //       p.vertex(
+  //   //         vertexPlotConversionX(this.state.vertices[i][0]),
+  //   //         vertexPlotConversionY(this.state.vertices[i][1])
+  //   //       );
+  //   //     }
+  plotVertices(vert) {
+    this.state.planePlotVertices.push(
+      <circle
+        cx={this.vertexPlotConversionX(vert[0])}
+        cy={this.vertexPlotConversionY(vert[1])}
+        r={2}
+        fill="darkslategrey"
+      />
+    );
+    let planePlot = this.state.planePlotVertices;
+
+    this.setState(planePlot);
+    console.log(this.state.planePlotVertices);
+  }
+
   componentDidMount() {
     // this.myP5 = new p5(this.Sketch, this.myRef.current);
     //write axios as promise to ensure data from server before continuing
@@ -506,6 +536,7 @@ class App extends React.Component {
       this.setState({ extAngles: [] });
       this.setState({ lineLengths: [] });
       this.setState({ lineSlopes: [] });
+      this.setState({ planePlotVertices: [] });
     };
     const listItems = this.state.vertices.map((vertex, index) => (
       <li key={index}>
@@ -569,7 +600,7 @@ class App extends React.Component {
             x2={this.originx + i * this.gridWidth}
             y2={this.originy + 7}
             stroke="DarkSlateGray"
-            strokeWidth="5"
+            strokeWidth="3"
           />
         );
         cPlane.push(
@@ -579,7 +610,7 @@ class App extends React.Component {
             x2={this.originx + 7}
             y2={this.originy - j * this.gridHeight}
             stroke="DarkSlateGray"
-            strokeWidth="5"
+            strokeWidth="3"
           />
         );
       }
@@ -592,7 +623,7 @@ class App extends React.Component {
         x2={this.canvasWidth}
         y2={this.originy}
         stroke="DarkSlateGray"
-        strokeWidth="5"
+        strokeWidth="3"
       />
     );
     cPlane.push(
@@ -602,7 +633,7 @@ class App extends React.Component {
         x2={this.originx}
         y2={this.canvasHeight}
         stroke="DarkSlateGray"
-        strokeWidth="5"
+        strokeWidth="3"
       />
     );
     //axis labels
@@ -674,7 +705,7 @@ class App extends React.Component {
               <text
                 x={this.state.mouseCoords[0] + 5}
                 y={this.state.mouseCoords[1] - 5}
-                style={{ font: "32px helvetica bold", fontWeight: "bold" }}
+                style={{ font: "20px helvetica bold", fontWeight: "bold" }}
                 className="svgText"
               >
                 (
@@ -691,7 +722,7 @@ class App extends React.Component {
                 }
                 )
               </text>
-              <g></g>
+              <g>{this.state.planePlotVertices}</g>
             </g>
           </svg>
         </div>
