@@ -62,6 +62,7 @@ class App extends React.Component {
     this.vertexPlotConversionX = this.vertexPlotConversionX.bind(this);
     this.vertexPlotConversionY = this.vertexPlotConversionY.bind(this);
     this.plotVertices = this.plotVertices.bind(this);
+    this.plotPolygon = this.plotPolygon.bind(this);
   }
 
   // Sketch = (p) => {
@@ -498,17 +499,18 @@ class App extends React.Component {
     this.setState({ mouseCoords });
   }
 
-  // for (let i = 0; i < this.state.vertices.length; i++) {
-  //   //       p.circle(
-  //   //         vertexPlotConversionX(this.state.vertices[i][0]),
-  //   //         vertexPlotConversionY(this.state.vertices[i][1]),
-  //   //         3
-  //   //       );
-  //   //       p.vertex(
-  //   //         vertexPlotConversionX(this.state.vertices[i][0]),
-  //   //         vertexPlotConversionY(this.state.vertices[i][1])
-  //   //       );
-  //   //     }
+  plotPolygon() {
+    const vertexList = [];
+    for (let i = 0; i < this.state.vertices.length; i++) {
+      vertexList.push(
+        this.vertexPlotConversionX(this.state.vertices[i][0]) +
+          "," +
+          this.vertexPlotConversionY(this.state.vertices[i][1])
+      );
+    }
+    return vertexList.join(" ");
+  }
+
   plotVertices(vert) {
     this.state.planePlotVertices.push(
       <circle
@@ -516,11 +518,13 @@ class App extends React.Component {
         cy={this.vertexPlotConversionY(vert[1])}
         r={2}
         fill="darkslategrey"
+        className="vertex"
+        id={this.state.vertices.length}
       />
     );
-    let planePlot = this.state.planePlotVertices;
+    let planePlotVertices = this.state.planePlotVertices;
 
-    this.setState(planePlot);
+    this.setState(planePlotVertices);
     console.log(this.state.planePlotVertices);
   }
 
@@ -723,6 +727,14 @@ class App extends React.Component {
                 )
               </text>
               <g>{this.state.planePlotVertices}</g>
+              <g>
+                <polygon
+                  points={this.plotPolygon()}
+                  fill="darkseagreen"
+                  stroke="darkslategrey"
+                  strokeWidth="2"
+                />
+              </g>
             </g>
           </svg>
         </div>
