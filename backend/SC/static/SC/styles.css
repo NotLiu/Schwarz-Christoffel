@@ -32,3 +32,11 @@ li {
 .svgText {
   pointer-events: none;
 }
+
+.vertex {
+}
+
+.vertex:hover {
+  fill: rgb(211, 35, 88);
+  r: 6;
+}

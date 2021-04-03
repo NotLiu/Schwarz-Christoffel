@@ -3,7 +3,6 @@ import React from "react";
 import ReactDOM, { render } from "react-dom";
 // import Sketch from 'react-p5';
 import axios from "axios";
-import * as p5 from "p5";
 import Cookies from "js-cookie";
 
 axios.defaults.xsrfCookieName = "csrftoken";
@@ -26,6 +25,7 @@ class App extends React.Component {
       polygon: false,
       mouseCoords: [0, 0],
       planePlotVertices: [],
+      plotTooltip: [],
     };
 
     this.canvasWidth = 500;
@@ -53,6 +53,7 @@ class App extends React.Component {
     this.endGridX = this.state.gridSize[3];
 
     this.svg = React.createRef();
+    this.tooltip = React.createRef();
 
     //bind functions
     this.changeMouseCoords = this.changeMouseCoords.bind(this);
@@ -63,304 +64,9 @@ class App extends React.Component {
     this.vertexPlotConversionY = this.vertexPlotConversionY.bind(this);
     this.plotVertices = this.plotVertices.bind(this);
     this.plotPolygon = this.plotPolygon.bind(this);
+    this.plotToolTip = this.plotToolTip.bind(this);
+    this.delToolTip = this.delToolTip.bind(this);
   }
-
-  // Sketch = (p) => {
-  //   let canvasWidth = 900;
-  //   let canvasHeight = 900;
-  //   let gridHeight =
-  //     canvasHeight /
-  //     (Math.abs(this.state.gridSize[3]) + Math.abs(this.state.gridSize[2]));
-  //   let gridWidth =
-  //     canvasWidth /
-  //     (Math.abs(this.state.gridSize[1]) + Math.abs(this.state.gridSize[0]));
-
-  //   if (
-  //     Math.sign(this.state.gridSize[3]) == Math.sign(this.state.gridSize[2])
-  //   ) {
-  //     gridHeight = Math.abs(
-  //       canvasHeight /
-  //         (Math.abs(this.state.gridSize[3]) - Math.abs(this.state.gridSize[2]))
-  //     );
-  //   }
-
-  //   if (
-  //     Math.sign(this.state.gridSize[1]) == Math.sign(this.state.gridSize[0])
-  //   ) {
-  //     gridWidth = Math.abs(
-  //       canvasWidth /
-  //         (Math.abs(this.state.gridSize[1]) - Math.abs(this.state.gridSize[0]))
-  //     );
-  //   }
-
-  //   this.state.gridSize = this.state.gridSize
-  //     .slice(0, 4)
-  //     .concat([gridWidth, gridHeight]);
-
-  //   let originx =
-  //     canvasWidth *
-  //     (Math.abs(this.state.gridSize[0]) /
-  //       (Math.abs(this.state.gridSize[1]) + Math.abs(this.state.gridSize[0])));
-  //   let originy =
-  //     canvasHeight *
-  //     (Math.abs(this.state.gridSize[3]) /
-  //       (Math.abs(this.state.gridSize[3]) + Math.abs(this.state.gridSize[2])));
-
-  //   if (this.state.gridSize[0] > 0) {
-  //     originx = 0;
-  //   } else if (this.state.gridSize[1] < 0) {
-  //     originx = canvasWidth;
-  //   }
-
-  //   if (this.state.gridSize[2] > 0) {
-  //     originy = canvasHeight;
-  //   } else if (this.state.gridSize[3] < 0) {
-  //     originy = 0;
-  //   }
-
-  //   Math.abs(this.state.gridSize[3]) /
-  //     (Math.abs(this.state.gridSize[3]) + Math.abs(this.state.gridSize[2]));
-  //   console.log("origin location: ", originx, originy);
-  //   console.log("gridwidth: ", gridWidth);
-
-  //   function customRoundX(x, round) {
-  //     var temp_round = (Math.abs(x) - originx) / round;
-
-  //     return temp_round;
-  //     // //round to closest integer coordinate
-  //     // if(Math.abs(temp_round)%1<0.5){
-  //     //     if(Math.sign(temp_round)<0){ //if negative, reverse rounding
-  //     //         return Math.ceil(temp_round);
-  //     //     }
-  //     //     else{
-  //     //         return Math.floor(temp_round);
-  //     //     }
-
-  //     // }
-  //     // else{
-  //     //     if(Math.sign(temp_round)<0){
-  //     //         return Math.floor(temp_round);
-  //     //     }
-  //     //     else{
-  //     //         return Math.ceil(temp_round);
-  //     //     }
-  //     // }
-  //   }
-  //   function customRoundY(y, round) {
-  //     //negative return values because pixel coordinates run opposite vertically
-  //     var temp_round = (Math.abs(y) - originy) / round;
-
-  //     return temp_round;
-  //     // //round to closest integer coordinate
-  //     // if(Math.abs(temp_round)%1<0.5){
-  //     //     if(Math.sign(temp_round)<0){ //if negative, reverse rounding
-  //     //         return -Math.ceil(temp_round);
-  //     //     }
-  //     //     else{
-  //     //         return -Math.floor(temp_round);
-  //     //     }
-
-  //     // }
-  //     // else{
-  //     //     if(Math.sign(temp_round)<0){
-  //     //         return -Math.floor(temp_round);
-  //     //     }
-  //     //     else{
-  //     //         return -Math.ceil(temp_round);
-  //     //     }
-  //     // }
-  //   }
-
-  //   function vertexPlotConversionX(vertex, xSep = 0) {
-  //     return vertex * gridWidth + originx + xSep;
-  //   }
-
-  //   function vertexPlotConversionY(vertex, ySep = 0) {
-  //     return -vertex * gridHeight + originy + ySep;
-  //   }
-
-  //   p.setup = () => {
-  //     p.createCanvas(canvasWidth, canvasHeight);
-  //   };
-
-  //   p.draw = () => {
-  //     p.background(240);
-  //     p.fill(255);
-
-  //     //if they min and max coordinates are same sign, fix starting coord
-  //     let startGridV = this.state.gridSize[0];
-  //     let startGridX = this.state.gridSize[2];
-
-  //     let endGridV = this.state.gridSize[1];
-  //     let endGridX = this.state.gridSize[3];
-
-  //     if (
-  //       Math.sign(this.state.gridSize[3]) == Math.sign(this.state.gridSize[2])
-  //     ) {
-  //       if (Math.sign(this.state.gridSize[3]) == 1) {
-  //         startGridX = 0;
-  //       }
-  //       if (Math.sign(this.state.gridSize[3]) == -1) {
-  //         endGridX = 0;
-  //       }
-  //     }
-
-  //     if (
-  //       Math.sign(this.state.gridSize[1]) == Math.sign(this.state.gridSize[0])
-  //     ) {
-  //       if (Math.sign(this.state.gridSize[1]) == 1) {
-  //         startGridV = 0;
-  //       }
-  //       if (Math.sign(this.state.gridSize[1]) == -1) {
-  //         endGridV = 0;
-  //       }
-  //     }
-
-  //     //draws and updates grids
-  //     for (var i = startGridV; i <= endGridV; i++) {
-  //       //vertical
-  //       for (var j = startGridX; j <= endGridX; j++) {
-  //         //horizontal
-  //         p.strokeWeight(1);
-  //         p.stroke(200);
-  //         p.line(
-  //           originx + i * gridWidth,
-  //           0,
-  //           originx + i * gridWidth,
-  //           canvasHeight
-  //         ); //vertical lines
-  //         p.line(
-  //           0,
-  //           originy - j * gridHeight,
-  //           canvasWidth,
-  //           originy - j * gridHeight
-  //         ); //horizontal lines
-
-  //         //notches
-  //         p.strokeWeight(2);
-  //         p.stroke(0);
-  //         p.line(
-  //           originx + i * gridWidth,
-  //           originy - 5,
-  //           originx + i * gridWidth,
-  //           originy + 5
-  //         );
-  //         p.line(
-  //           originx - 5,
-  //           originy - j * gridHeight,
-  //           originx + 5,
-  //           originy - j * gridHeight
-  //         );
-  //       }
-  //     }
-
-  //     //axis grids
-  //     p.stroke(0);
-  //     p.strokeWeight(2);
-  //     p.line(0, originy, canvasWidth, originy);
-  //     p.line(originx, 0, originx, canvasHeight);
-
-  //     p.textSize(canvasHeight / 30);
-  //     // p.textFont('Helvetica');
-  //     p.textStyle("NORMAL");
-  //     p.fill(50);
-  //     p.text("x", canvasWidth - 18, originy - 9);
-  //     p.text("y", originx + 9, 0 + 17);
-
-  //     //display vertices
-  //     p.beginShape();
-  //     for (let i = 0; i < this.state.vertices.length; i++) {
-  //       p.circle(
-  //         vertexPlotConversionX(this.state.vertices[i][0]),
-  //         vertexPlotConversionY(this.state.vertices[i][1]),
-  //         3
-  //       );
-  //       p.vertex(
-  //         vertexPlotConversionX(this.state.vertices[i][0]),
-  //         vertexPlotConversionY(this.state.vertices[i][1])
-  //       );
-  //     }
-  //     p.endShape();
-  //     //mouse position display
-
-  //     //rounded
-  //     p.text(
-  //       "(" +
-  //         customRoundX(p.mouseX, gridWidth).toFixed(2) +
-  //         ", " +
-  //         (-customRoundY(p.mouseY, gridHeight)).toFixed(2) +
-  //         ")",
-  //       p.mouseX + 5,
-  //       p.mouseY - 5
-  //     );
-
-  //     //display angles
-
-  //     if (this.state.vertices.length > 2 && this.state.polygon) {
-  //       const angleTemp = [...this.state.extAngles];
-
-  //       // console.log(
-  //       //   parseFloat(angleTemp[angleTemp.length - 1].slice(5)).toFixed(2)
-  //       // );
-  //       p.text(
-  //         "∠ " +
-  //           parseFloat(angleTemp[angleTemp.length - 1].slice(5)).toFixed(2),
-  //         vertexPlotConversionX(
-  //           this.state.vertices[this.state.vertices.length - 1][0],
-  //           -25
-  //         ),
-  //         vertexPlotConversionY(
-  //           this.state.vertices[this.state.vertices.length - 1][1],
-  //           30
-  //         )
-  //       );
-
-  //       for (let i = 1; i < this.state.vertices.length; i++) {
-  //         p.text(
-  //           "∠ " + parseFloat(angleTemp[i].slice(5)).toFixed(2),
-  //           vertexPlotConversionX(this.state.vertices[i - 1][0], -25),
-  //           vertexPlotConversionY(this.state.vertices[i - 1][1], 30)
-  //         );
-  //       }
-  //     }
-  //   };
-
-  //   //plot point on coordinate plane
-  //   p.mouseClicked = () => {
-  //     //flag to make sure data is set before rendering
-  //     this.setState({ polygon: false });
-
-  //     //add new vertices;
-  //     let new_vert = [
-  //       customRoundX(p.mouseX, gridWidth).toFixed(2),
-  //       (-customRoundY(p.mouseY, gridHeight)).toFixed(2),
-  //     ];
-  //     let flag = 0;
-
-  //     for (let i = 0; i < this.state.vertices.length; i++) {
-  //       if (
-  //         this.state.vertices[i][0] == new_vert[0] &&
-  //         this.state.vertices[i][1] == new_vert[1]
-  //       ) {
-  //         flag = 1;
-  //         break;
-  //       }
-  //     }
-
-  //     if (
-  //       flag == 0 &&
-  //       p.mouseX < canvasWidth &&
-  //       p.mouseX > 0 &&
-  //       p.mouseY > 0 &&
-  //       p.mouseY < canvasHeight
-  //     ) {
-  //       // create duplicate of state array and append new vertex
-  //       const vertices = [...this.state.vertices, new_vert];
-  //       this.getPolyData(vertices);
-  //       this.setState({ vertices });
-  //     }
-  //   };
-  // };
 
   async getPolyData(vertices) {
     try {
@@ -497,6 +203,21 @@ class App extends React.Component {
     const mouseCoords = this.state.mouseCoords;
 
     this.setState({ mouseCoords });
+
+    if (this.state.vertices.length > 0 && this.tooltip.current != null) {
+      if (
+        cursorpt.x < parseFloat(this.tooltip.current.x) ||
+        cursorpt.x >
+          parseFloat(this.tooltip.current.x) +
+            parseFloat(this.tooltip.current.width) ||
+        cursorpt.y < parseFloat(this.tooltip.current.y) ||
+        cursorpt.y >
+          parseFloat(this.tooltip.current.y) +
+            parseFloat(this.tooltip.current.height)
+      ) {
+        this.delToolTip();
+      }
+    }
   }
 
   plotPolygon() {
@@ -516,16 +237,92 @@ class App extends React.Component {
       <circle
         cx={this.vertexPlotConversionX(vert[0])}
         cy={this.vertexPlotConversionY(vert[1])}
-        r={2}
+        r={4}
         fill="darkslategrey"
         className="vertex"
         id={this.state.vertices.length}
+        data={vert}
+        onMouseEnter={this.plotToolTip}
       />
     );
     let planePlotVertices = this.state.planePlotVertices;
 
     this.setState(planePlotVertices);
     console.log(this.state.planePlotVertices);
+  }
+
+  getToolTipData(vert) {}
+
+  plotToolTip = (event) => {
+    if (this.state.vertices.length >= 3) {
+      const vertX = this.state.vertices[event.target.id][0];
+      const vertY = this.state.vertices[event.target.id][1];
+
+      let left = this.vertexPlotConversionX(vertX);
+      let top = this.vertexPlotConversionY(vertY);
+
+      const width = 200;
+      const height = 250;
+
+      let plotTooltip = this.state.plotTooltip;
+
+      if (vertX < 0 && vertY > 0) {
+        plotTooltip.push(
+          <rect
+            x={left}
+            y={top}
+            width={width}
+            height={height}
+            style={{ fill: "darkslategrey", stroke: "black", strokeWidth: "2" }}
+            onMouseLeave={this.delToolTip}
+            ref={this.tooltip}
+          />
+        );
+      } else if (vertX < 0 && vertY < 0) {
+        plotTooltip.push(
+          <rect
+            x={left}
+            y={top - height}
+            width={width}
+            height={height}
+            style={{ fill: "darkslategrey", stroke: "black", strokeWidth: "2" }}
+            onMouseLeave={this.delToolTip}
+            ref={this.tooltip}
+          />
+        );
+      } else if (vertX > 0 && vertY > 0) {
+        plotTooltip.push(
+          <rect
+            x={left - width}
+            y={top}
+            width={width}
+            height={height}
+            style={{ fill: "darkslategrey", stroke: "black", strokeWidth: "2" }}
+            onMouseLeave={this.delToolTip}
+            ref={this.tooltip}
+          />
+        );
+      } else if (vertX > 0 && vertY < 0) {
+        plotTooltip.push(
+          <rect
+            x={left - width}
+            y={top - height}
+            width={width}
+            height={height}
+            style={{ fill: "darkslategrey", stroke: "black", strokeWidth: "2" }}
+            onMouseLeave={this.delToolTip}
+            ref={this.tooltip}
+          />
+        );
+      }
+
+      this.setState(plotTooltip);
+      console.log(vertX + "XXX" + vertY);
+    }
+  };
+
+  delToolTip() {
+    this.setState({ plotTooltip: [] });
   }
 
   componentDidMount() {
@@ -706,6 +503,15 @@ class App extends React.Component {
           >
             <g id="planeFrame">{cPlane}</g>
             <g id="planeData">
+              <g>
+                <polygon
+                  points={this.plotPolygon()}
+                  fill="darkseagreen"
+                  stroke="darkslategrey"
+                  strokeWidth="2"
+                />
+              </g>
+              <g>{this.state.planePlotVertices}</g>
               <text
                 x={this.state.mouseCoords[0] + 5}
                 y={this.state.mouseCoords[1] - 5}
@@ -726,15 +532,7 @@ class App extends React.Component {
                 }
                 )
               </text>
-              <g>{this.state.planePlotVertices}</g>
-              <g>
-                <polygon
-                  points={this.plotPolygon()}
-                  fill="darkseagreen"
-                  stroke="darkslategrey"
-                  strokeWidth="2"
-                />
-              </g>
+              <g>{this.state.plotTooltip}</g>
             </g>
           </svg>
         </div>
