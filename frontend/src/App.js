@@ -239,9 +239,9 @@ class App extends React.Component {
         cy={this.vertexPlotConversionY(vert[1])}
         r={4}
         fill="darkslategrey"
-        className="vertex"
+        className={"vertex" + " vertex" + this.state.vertices.length}
         id={this.state.vertices.length}
-        data={vert}
+        data={"(" + vert[0] + ", " + vert[1] + ")"}
         onMouseEnter={this.plotToolTip}
       />
     );
@@ -251,7 +251,21 @@ class App extends React.Component {
     console.log(this.state.planePlotVertices);
   }
 
-  getToolTipData(vert) {}
+  getToolTipData(vert) {
+    const ttData = {};
+
+    //fill tooltip data
+    ttData.vertex = vert.getAttribute("data");
+    if (vert.id != 0) {
+      ttData.intAngle = this.state.intAngles[vert.id - 1];
+      ttData.extAngle = this.state.extAngles[vert.id - 1];
+    } else {
+      ttData.intAngle = this.state.intAngles[vert.id];
+      ttData.extAngle = this.state.extAngles[vert.id];
+    }
+
+    return ttData;
+  }
 
   plotToolTip = (event) => {
     if (this.state.vertices.length >= 3) {
@@ -262,62 +276,90 @@ class App extends React.Component {
       let top = this.vertexPlotConversionY(vertY);
 
       const width = 200;
-      const height = 250;
+      const height = 150;
 
       let plotTooltip = this.state.plotTooltip;
 
-      if (vertX < 0 && vertY > 0) {
-        plotTooltip.push(
-          <rect
-            x={left}
-            y={top}
-            width={width}
-            height={height}
-            style={{ fill: "darkslategrey", stroke: "black", strokeWidth: "2" }}
-            onMouseLeave={this.delToolTip}
-            ref={this.tooltip}
-          />
-        );
-      } else if (vertX < 0 && vertY < 0) {
-        plotTooltip.push(
-          <rect
-            x={left}
-            y={top - height}
-            width={width}
-            height={height}
-            style={{ fill: "darkslategrey", stroke: "black", strokeWidth: "2" }}
-            onMouseLeave={this.delToolTip}
-            ref={this.tooltip}
-          />
-        );
+      if (vertX < 0 && vertY < 0) {
+        top = top - height;
       } else if (vertX > 0 && vertY > 0) {
-        plotTooltip.push(
-          <rect
-            x={left - width}
-            y={top}
-            width={width}
-            height={height}
-            style={{ fill: "darkslategrey", stroke: "black", strokeWidth: "2" }}
-            onMouseLeave={this.delToolTip}
-            ref={this.tooltip}
-          />
-        );
+        left = left - width;
       } else if (vertX > 0 && vertY < 0) {
-        plotTooltip.push(
-          <rect
-            x={left - width}
-            y={top - height}
-            width={width}
-            height={height}
-            style={{ fill: "darkslategrey", stroke: "black", strokeWidth: "2" }}
-            onMouseLeave={this.delToolTip}
-            ref={this.tooltip}
-          />
-        );
+        left = left - width;
+        top = top - height;
       }
 
+      plotTooltip.push(
+        <rect
+          x={left}
+          y={top}
+          width={width}
+          height={height}
+          style={{ fill: "darkslategrey", stroke: "black", strokeWidth: "2" }}
+          onMouseLeave={this.delToolTip}
+          ref={this.tooltip}
+        />
+      );
+
+      const ttdata = this.getToolTipData(event.target);
+
+      plotTooltip.push([
+        <text
+          x={left + 15}
+          y={top + 30}
+          style={{ font: "20px helvetica bold" }}
+          className="svgText"
+          fill="floralWhite"
+        >
+          {String.fromCharCode(65 + parseInt(event.target.id))}: {ttdata.vertex}
+        </text>,
+        <text
+          x={left + 15}
+          y={top + 55}
+          style={{ font: "20px helvetica bold" }}
+          className="svgText"
+          fill="floralWhite"
+        >
+          Exterior Angle:
+        </text>,
+        <text
+          x={left + 15}
+          y={top + 80}
+          style={{ font: "20px helvetica bold" }}
+          className="svgText"
+          fill="floralWhite"
+        >
+          (
+          {ttdata.extAngle.slice(0, 5) +
+            " " +
+            parseFloat(ttdata.extAngle.slice(5)).toFixed(2)}
+          )
+        </text>,
+        <text
+          x={left + 15}
+          y={top + 105}
+          style={{ font: "20px helvetica bold" }}
+          className="svgText"
+          fill="floralWhite"
+        >
+          Interior Angle:
+        </text>,
+        <text
+          x={left + 15}
+          y={top + 130}
+          style={{ font: "20px helvetica bold" }}
+          className="svgText"
+          fill="floralWhite"
+        >
+          (
+          {ttdata.intAngle.slice(0, 5) +
+            " " +
+            parseFloat(ttdata.intAngle.slice(5)).toFixed(2)}
+          )
+        </text>,
+      ]);
+
       this.setState(plotTooltip);
-      console.log(vertX + "XXX" + vertY);
     }
   };
 
@@ -340,27 +382,28 @@ class App extends React.Component {
       this.setState({ planePlotVertices: [] });
     };
     const listItems = this.state.vertices.map((vertex, index) => (
-      <li key={index}>
-        ({vertex[0]},{vertex[1]})
+      <li key={index} className={"vertex" + this.state.vertices.length}>
+        {String.fromCharCode(65 + this.state.vertices.length)}: ({vertex[0]},{" "}
+        {vertex[1]})
       </li>
     ));
     const extAnglesList = this.state.extAngles.map((angle, index) => (
-      <li key={index}>
+      <li key={index} className={"vertex" + this.state.vertices.length}>
         ({angle.slice(0, 5) + parseFloat(angle.slice(5)).toFixed(2)})
       </li>
     ));
     const intAnglesList = this.state.intAngles.map((angle, index) => (
-      <li key={index}>
+      <li key={index} className={"vertex" + this.state.vertices.length}>
         ({angle.slice(0, 5) + parseFloat(angle.slice(5)).toFixed(2)})
       </li>
     ));
     const lineLenList = this.state.lineLengths.map((len, index) => (
-      <li key={index}>
+      <li key={index} className={"vertex" + this.state.vertices.length}>
         ({len.slice(0, 7) + parseFloat(len.slice(7)).toFixed(2)})
       </li>
     ));
     const lineSlopeList = this.state.lineSlopes.map((slope, index) => (
-      <li key={index}>
+      <li key={index} className={"vertex" + this.state.vertices.length}>
         ({slope.slice(0, 7) + parseFloat(slope.slice(7)).toFixed(2)})
       </li>
     ));
