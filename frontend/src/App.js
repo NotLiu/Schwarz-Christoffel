@@ -66,6 +66,9 @@ class App extends React.Component {
     this.plotPolygon = this.plotPolygon.bind(this);
     this.plotToolTip = this.plotToolTip.bind(this);
     this.delToolTip = this.delToolTip.bind(this);
+
+    //flags
+    this.ttFlag = false; //only show tt after moving mouse, therefore allowing data to be loaded in first
   }
 
   async getPolyData(vertices) {
@@ -157,6 +160,7 @@ class App extends React.Component {
     // //flag to make sure data is set before rendering
     // this.setState({ polygon: false });
     //add new vertices;
+    this.ttFlag = false;
     let new_vert = [
       this.customRoundX(this.state.mouseCoords[0], this.gridWidth).toFixed(2),
       -this.customRoundY(this.state.mouseCoords[1], this.gridHeight).toFixed(2),
@@ -185,11 +189,13 @@ class App extends React.Component {
       this.getPolyData(vertices);
       this.setState({ vertices });
     }
+
     this.plotVertices(new_vert);
   }
 
   changeMouseCoords(evt) {
     // console.log(this.svg.current);
+    this.ttFlag = true;
     const pt = this.svg.current.createSVGPoint();
     pt.x = evt.clientX;
     pt.y = evt.clientY;
@@ -268,12 +274,12 @@ class App extends React.Component {
   }
 
   plotToolTip = (event) => {
-    if (this.state.vertices.length >= 3) {
+    if (this.state.vertices.length >= 3 && this.ttFlag == true) {
       const vertX = this.state.vertices[event.target.id][0];
       const vertY = this.state.vertices[event.target.id][1];
 
-      let left = this.vertexPlotConversionX(vertX);
-      let top = this.vertexPlotConversionY(vertY);
+      let left = this.vertexPlotConversionX(vertX) - 10;
+      let top = this.vertexPlotConversionY(vertY) - 10;
 
       const width = 200;
       const height = 150;
@@ -281,12 +287,12 @@ class App extends React.Component {
       let plotTooltip = this.state.plotTooltip;
 
       if (vertX < 0 && vertY < 0) {
-        top = top - height;
+        top = top - height + 20;
       } else if (vertX > 0 && vertY > 0) {
-        left = left - width;
+        left = left - width + 20;
       } else if (vertX > 0 && vertY < 0) {
-        left = left - width;
-        top = top - height;
+        left = left - width + 20;
+        top = top - height + 20;
       }
 
       plotTooltip.push(
@@ -383,8 +389,7 @@ class App extends React.Component {
     };
     const listItems = this.state.vertices.map((vertex, index) => (
       <li key={index} className={"vertex" + this.state.vertices.length}>
-        {String.fromCharCode(65 + this.state.vertices.length)}: ({vertex[0]},{" "}
-        {vertex[1]})
+        {String.fromCharCode(65 + index)}: ({vertex[0]}, {vertex[1]})
       </li>
     ));
     const extAnglesList = this.state.extAngles.map((angle, index) => (
