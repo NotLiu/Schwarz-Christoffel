@@ -4,6 +4,8 @@ import ReactDOM, { render } from "react-dom";
 // import Sketch from 'react-p5';
 import axios from "axios";
 import Cookies from "js-cookie";
+import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
+import "react-tabs/style/react-tabs.css";
 
 axios.defaults.xsrfCookieName = "csrftoken";
 axios.defaults.xsrfHeaderName = "X-CSRFToken";
@@ -281,7 +283,7 @@ class App extends React.Component {
       let left = this.vertexPlotConversionX(vertX) - 10;
       let top = this.vertexPlotConversionY(vertY) - 10;
 
-      const width = 200;
+      const width = 160;
       const height = 150;
 
       let plotTooltip = this.state.plotTooltip;
@@ -371,6 +373,48 @@ class App extends React.Component {
 
   delToolTip() {
     this.setState({ plotTooltip: [] });
+  }
+
+  //data tabs
+  verticesTab(data) {
+    return (
+      <div>
+        VERTICES
+        <ul>{data}</ul>
+      </div>
+    );
+  }
+  extAngleTab(data) {
+    return (
+      <div>
+        EXTERIOR ANGLES
+        <ul>{data}</ul>
+      </div>
+    );
+  }
+  intAngleTab(data) {
+    return (
+      <div>
+        INTERIOR ANGLES
+        <ul>{data}</ul>
+      </div>
+    );
+  }
+  lineLenTab(data) {
+    return (
+      <div>
+        LINE LENGTHS
+        <ul>{data}</ul>
+      </div>
+    );
+  }
+  lineSlopeTab(data) {
+    return (
+      <div>
+        LINE SLOPES
+        <ul>{data}</ul>
+      </div>
+    );
   }
 
   componentDidMount() {
@@ -535,6 +579,7 @@ class App extends React.Component {
     } else if (this.state.gridSize[3] < 0) {
       originy = 0;
     }
+
     // console.log(this.mouseCoords);
     return (
       <div id="cont">
@@ -557,6 +602,7 @@ class App extends React.Component {
                   fill="darkseagreen"
                   stroke="darkslategrey"
                   strokeWidth="2"
+                  fillRule="nonzero"
                 />
               </g>
               <g>{this.state.planePlotVertices}</g>
@@ -584,29 +630,50 @@ class App extends React.Component {
             </g>
           </svg>
         </div>
-        <div id="vertexBox">
-          <div className="box">
-            VERTICES
-            <ul>{listItems}</ul>
-            <button onClick={onClickVert}>Clear</button>
-          </div>
-          <div className="box">
-            EXTERIOR ANGLES
-            <ul>{extAnglesList}</ul>
-          </div>
-          <div className="box">
-            INTERIOR ANGLES
-            <ul>{intAnglesList}</ul>
-          </div>
-          <div className="box">
-            LINE LENGTHS
-            <ul>{lineLenList}</ul>
-          </div>
-          <div className="box">
-            LINE SLOPES
-            <ul>{lineSlopeList}</ul>
-          </div>
-        </div>
+        <Tabs>
+          <TabList>
+            <Tab>Vertices</Tab>
+            <Tab>Exterior Angles</Tab>
+            <Tab>Interior Angles</Tab>
+            <Tab>Line Lengths</Tab>
+            <Tab>Line Slopes</Tab>
+          </TabList>
+
+          <TabPanel>
+            <div className="box">
+              {this.verticesTab(listItems)}
+              <button onClick={onClickVert}>Clear</button>
+            </div>
+          </TabPanel>
+
+          <TabPanel>
+            <div className="box">
+              {this.extAngleTab(extAnglesList)}
+              <button onClick={onClickVert}>Clear</button>
+            </div>
+          </TabPanel>
+
+          <TabPanel>
+            <div className="box">
+              {this.intAngleTab(intAnglesList)}
+              <button onClick={onClickVert}>Clear</button>
+            </div>
+          </TabPanel>
+
+          <TabPanel>
+            <div className="box">
+              {this.lineLenTab(lineLenList)}
+              <button onClick={onClickVert}>Clear</button>
+            </div>
+          </TabPanel>
+
+          <TabPanel>
+            <div className="box">
+              {this.lineSlopeTab(lineSlopeList)}
+              <button onClick={onClickVert}>Clear</button>
+            </div>
+          </TabPanel>
+        </Tabs>
       </div>
     );
   }
