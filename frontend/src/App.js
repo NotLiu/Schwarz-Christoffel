@@ -380,7 +380,7 @@ class App extends React.Component {
     return (
       <div>
         VERTICES
-        <ul>{data}</ul>
+        <ul className="dataList">{data}</ul>
       </div>
     );
   }
@@ -388,7 +388,7 @@ class App extends React.Component {
     return (
       <div>
         EXTERIOR ANGLES
-        <ul>{data}</ul>
+        <ul className="dataList">{data}</ul>
       </div>
     );
   }
@@ -396,7 +396,7 @@ class App extends React.Component {
     return (
       <div>
         INTERIOR ANGLES
-        <ul>{data}</ul>
+        <ul className="dataList">{data}</ul>
       </div>
     );
   }
@@ -404,7 +404,7 @@ class App extends React.Component {
     return (
       <div>
         LINE LENGTHS
-        <ul>{data}</ul>
+        <ul className="dataList">{data}</ul>
       </div>
     );
   }
@@ -412,7 +412,7 @@ class App extends React.Component {
     return (
       <div>
         LINE SLOPES
-        <ul>{data}</ul>
+        <ul className="dataList">{data}</ul>
       </div>
     );
   }
@@ -630,7 +630,7 @@ class App extends React.Component {
             </g>
           </svg>
         </div>
-        <Tabs>
+        <Tabs orientation="vertical">
           <TabList>
             <Tab>Vertices</Tab>
             <Tab>Exterior Angles</Tab>
@@ -640,38 +640,28 @@ class App extends React.Component {
           </TabList>
 
           <TabPanel>
-            <div className="box">
-              {this.verticesTab(listItems)}
-              <button onClick={onClickVert}>Clear</button>
-            </div>
+            <div className="box">{this.verticesTab(listItems)}</div>
+            <button onClick={onClickVert}>Clear</button>
           </TabPanel>
 
           <TabPanel>
-            <div className="box">
-              {this.extAngleTab(extAnglesList)}
-              <button onClick={onClickVert}>Clear</button>
-            </div>
+            <div className="box">{this.extAngleTab(extAnglesList)}</div>
+            <button onClick={onClickVert}>Clear</button>
           </TabPanel>
 
           <TabPanel>
-            <div className="box">
-              {this.intAngleTab(intAnglesList)}
-              <button onClick={onClickVert}>Clear</button>
-            </div>
+            <div className="box">{this.intAngleTab(intAnglesList)}</div>
+            <button onClick={onClickVert}>Clear</button>
           </TabPanel>
 
           <TabPanel>
-            <div className="box">
-              {this.lineLenTab(lineLenList)}
-              <button onClick={onClickVert}>Clear</button>
-            </div>
+            <div className="box">{this.lineLenTab(lineLenList)}</div>
+            <button onClick={onClickVert}>Clear</button>
           </TabPanel>
 
           <TabPanel>
-            <div className="box">
-              {this.lineSlopeTab(lineSlopeList)}
-              <button onClick={onClickVert}>Clear</button>
-            </div>
+            <div className="box">{this.lineSlopeTab(lineSlopeList)}</div>
+            <button onClick={onClickVert}>Clear</button>
           </TabPanel>
         </Tabs>
       </div>
