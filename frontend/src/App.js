@@ -30,8 +30,8 @@ class App extends React.Component {
       plotTooltip: [],
     };
 
-    this.canvasWidth = 500;
-    this.canvasHeight = 500;
+    this.canvasWidth = 630;
+    this.canvasHeight = 630;
     this.gridHeight =
       this.canvasHeight /
       (Math.abs(this.state.gridSize[3]) + Math.abs(this.state.gridSize[2]));
@@ -582,88 +582,141 @@ class App extends React.Component {
 
     // console.log(this.mouseCoords);
     return (
-      <div id="cont">
-        {/* <div ref={this.myRef}></div> */}
+      <div>
+        <div id="bodySection">
+          <div id="cont">
+            {/* <div ref={this.myRef}></div> */}
 
-        <div id="coordPlane">
-          <svg
-            width={this.canvasWidth}
-            height={this.canvasHeight}
-            style={{ backgroundColor: "FloralWhite" }}
-            ref={this.svg}
-            onMouseMove={this.changeMouseCoords}
-            onMouseDown={this.mouseClicked}
-          >
-            <g id="planeFrame">{cPlane}</g>
-            <g id="planeData">
-              <g>
-                <polygon
-                  points={this.plotPolygon()}
-                  fill="darkseagreen"
-                  stroke="darkslategrey"
-                  strokeWidth="2"
-                  fillRule="nonzero"
-                />
-              </g>
-              <g>{this.state.planePlotVertices}</g>
-              <text
-                x={this.state.mouseCoords[0] + 5}
-                y={this.state.mouseCoords[1] - 5}
-                style={{ font: "20px helvetica bold", fontWeight: "bold" }}
-                className="svgText"
+            <div id="coordPlane">
+              <svg
+                width={this.canvasWidth}
+                height={this.canvasHeight}
+                style={{ backgroundColor: "FloralWhite" }}
+                ref={this.svg}
+                onMouseMove={this.changeMouseCoords}
+                onMouseDown={this.mouseClicked}
               >
-                (
-                {this.customRoundX(
-                  this.state.mouseCoords[0],
-                  this.gridWidth
-                ).toFixed(2)}
-                ,
-                {
-                  -this.customRoundY(
-                    this.state.mouseCoords[1],
-                    this.gridHeight
-                  ).toFixed(2)
-                }
-                )
-              </text>
-              <g>{this.state.plotTooltip}</g>
-            </g>
-          </svg>
+                <g id="planeFrame">{cPlane}</g>
+                <g id="planeData">
+                  <g>
+                    <polygon
+                      points={this.plotPolygon()}
+                      fill="darkseagreen"
+                      stroke="darkslategrey"
+                      strokeWidth="2"
+                      fillRule="nonzero"
+                    />
+                  </g>
+                  <g>{this.state.planePlotVertices}</g>
+                  <text
+                    x={this.state.mouseCoords[0] + 5}
+                    y={this.state.mouseCoords[1] - 5}
+                    style={{ font: "20px helvetica bold", fontWeight: "bold" }}
+                    className="svgText"
+                  >
+                    (
+                    {this.customRoundX(
+                      this.state.mouseCoords[0],
+                      this.gridWidth
+                    ).toFixed(2)}
+                    ,
+                    {
+                      -this.customRoundY(
+                        this.state.mouseCoords[1],
+                        this.gridHeight
+                      ).toFixed(2)
+                    }
+                    )
+                  </text>
+                  <g>{this.state.plotTooltip}</g>
+                </g>
+              </svg>
+            </div>
+            <Tabs orientation="vertical">
+              <TabList>
+                <Tab>Vertices</Tab>
+                <Tab>Exterior Angles</Tab>
+                <Tab>Interior Angles</Tab>
+                <Tab>Line Lengths</Tab>
+                <Tab>Line Slopes</Tab>
+              </TabList>
+
+              <TabPanel>
+                <div className="box">{this.verticesTab(listItems)}</div>
+                <button onClick={onClickVert}>Clear</button>
+              </TabPanel>
+
+              <TabPanel>
+                <div className="box">{this.extAngleTab(extAnglesList)}</div>
+                <button onClick={onClickVert}>Clear</button>
+              </TabPanel>
+
+              <TabPanel>
+                <div className="box">{this.intAngleTab(intAnglesList)}</div>
+                <button onClick={onClickVert}>Clear</button>
+              </TabPanel>
+
+              <TabPanel>
+                <div className="box">{this.lineLenTab(lineLenList)}</div>
+                <button onClick={onClickVert}>Clear</button>
+              </TabPanel>
+
+              <TabPanel>
+                <div className="box">{this.lineSlopeTab(lineSlopeList)}</div>
+                <button onClick={onClickVert}>Clear</button>
+              </TabPanel>
+            </Tabs>
+          </div>
         </div>
-        <Tabs orientation="vertical">
-          <TabList>
-            <Tab>Vertices</Tab>
-            <Tab>Exterior Angles</Tab>
-            <Tab>Interior Angles</Tab>
-            <Tab>Line Lengths</Tab>
-            <Tab>Line Slopes</Tab>
-          </TabList>
-
-          <TabPanel>
-            <div className="box">{this.verticesTab(listItems)}</div>
-            <button onClick={onClickVert}>Clear</button>
-          </TabPanel>
-
-          <TabPanel>
-            <div className="box">{this.extAngleTab(extAnglesList)}</div>
-            <button onClick={onClickVert}>Clear</button>
-          </TabPanel>
-
-          <TabPanel>
-            <div className="box">{this.intAngleTab(intAnglesList)}</div>
-            <button onClick={onClickVert}>Clear</button>
-          </TabPanel>
-
-          <TabPanel>
-            <div className="box">{this.lineLenTab(lineLenList)}</div>
-            <button onClick={onClickVert}>Clear</button>
-          </TabPanel>
-
-          <TabPanel>
-            <div className="box">{this.lineSlopeTab(lineSlopeList)}</div>
-            <button onClick={onClickVert}>Clear</button>
-          </TabPanel>
-        </Tabs>
+        <div id="infoSectionFlex">
+          <div id="infoSection">
+            <h1>
+              Web-App for the Visualization of Schwarz-Christoffel Mapping
+            </h1>
+            <h2>Introduction</h2>
+            <p>
+              Conformal mapping is a core concept in complex analysis, and has
+              many applications outside the realm of pure mathematics.
+              Specifically, the Schwarz-Christoffel transformation method deals
+              with mapping half-planes onto closed polygons, with applications
+              in various fields including: physics, fluid dynamics, minimal
+              surfaces, etc. The only known computational toolkit for computing
+              this mapping method only exists as a MATLAB implementation, which
+              stands as a barrier to general use. We hope to create a web-app
+              implementation that visualizes Schwarz-Christoffel Mapping and
+              provide an easy-to-use Web API to make it more accessible to users
+              everywhere. Initially, we had no foundations of complex analysis,
+              so our first step towards realizing this project was to research
+              the various approaches and steps to solving conformal mapping,
+              Schwarz-Christoffel mapping in particular. First, we explored the
+              basics of the field of complex analysis to gain an understanding
+              of the field we were working in. From there we were guided to a
+              report documenting the basic procedure of computing the
+              Schwarz-Christoffel transformation dating back to the 1990s. With
+              this detailed exploration of the procedure, we then researched the
+              various terms and methods used in the calculation such as the
+              Gauss-Jacobi Quadrature and Newton-Rhapson Method. Finally, we
+              delved into the only existing modern implementation of the
+              Schwarz-Christoffel transformation.
+            </p>
+            <h2>References</h2>
+            <p>XXX</p>
+            <h2>Authors</h2>
+            Andrew Liu Zane Fadul
+            <h2>Special Thanks</h2>
+            xxx
+          </div>
+          <div id="infoNavigator">
+            <ul id="navigationList">
+              <li>SECTION LINK</li>
+              <li>SECTION LINK</li>
+              <li>SECTION LINK</li>
+              <li>SECTION LINK</li>
+              <li>SECTION LINK</li>
+              <li>SECTION LINK</li>
+            </ul>
+          </div>
+        </div>
       </div>
     );
   }

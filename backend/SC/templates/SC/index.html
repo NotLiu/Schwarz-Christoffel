@@ -1,18 +1,20 @@
 {% load static %}
 
 <html>
-
-<head>
-    <link rel="stylesheet" type="text/css" href="{% static 'SC/styles.css' %}" />
+  <head>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{% static 'SC/styles.css' %}"
+    />
     <script src="{% static 'SC/script.js'%}"></script>
-</head>
+  </head>
 
-<body>
+  <body>
     <div id="app">
-        <h1>Hello world!</h1>
-        <button id="click">Click me :)</button>
+      <h1>Hello world!</h1>
+      <button id="click">Click me :)</button>
     </div>
     <script src="{% static 'SC/build/main.js' %}"></script>
-</body>
-
+  </body>
 </html>
