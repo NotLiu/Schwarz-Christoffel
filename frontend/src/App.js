@@ -422,7 +422,24 @@ class App extends React.Component {
     let x = 630;
     if (Number.isInteger(Number(event.target.value))) {
       this.canvasWidth = Number(event.target.value);
-      console.log(this.canvasWidth);
+
+      this.gridHeight =
+        this.canvasHeight /
+        (Math.abs(this.state.gridSize[3]) + Math.abs(this.state.gridSize[2]));
+      this.gridWidth =
+        this.canvasWidth /
+        (Math.abs(this.state.gridSize[1]) + Math.abs(this.state.gridSize[0]));
+      this.originx =
+        this.canvasWidth *
+        (Math.abs(this.state.gridSize[0]) /
+          (Math.abs(this.state.gridSize[1]) +
+            Math.abs(this.state.gridSize[0])));
+      this.originy =
+        this.canvasHeight *
+        (Math.abs(this.state.gridSize[3]) /
+          (Math.abs(this.state.gridSize[3]) +
+            Math.abs(this.state.gridSize[2])));
+      this.forceUpdate();
     } else {
       console.log("ERROR, INVALID VALUE");
     }
@@ -432,6 +449,23 @@ class App extends React.Component {
     let y = 630;
     if (Number.isInteger(Number(event.target.value))) {
       this.canvasHeight = Number(event.target.value);
+      this.gridHeight =
+        this.canvasHeight /
+        (Math.abs(this.state.gridSize[3]) + Math.abs(this.state.gridSize[2]));
+      this.gridWidth =
+        this.canvasWidth /
+        (Math.abs(this.state.gridSize[1]) + Math.abs(this.state.gridSize[0]));
+      this.originx =
+        this.canvasWidth *
+        (Math.abs(this.state.gridSize[0]) /
+          (Math.abs(this.state.gridSize[1]) +
+            Math.abs(this.state.gridSize[0])));
+      this.originy =
+        this.canvasHeight *
+        (Math.abs(this.state.gridSize[3]) /
+          (Math.abs(this.state.gridSize[3]) +
+            Math.abs(this.state.gridSize[2])));
+      this.forceUpdate();
     } else {
       console.log("ERROR, INVALID VALUE");
     }
