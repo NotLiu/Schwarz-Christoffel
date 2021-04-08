@@ -68,7 +68,8 @@ class App extends React.Component {
     this.plotPolygon = this.plotPolygon.bind(this);
     this.plotToolTip = this.plotToolTip.bind(this);
     this.delToolTip = this.delToolTip.bind(this);
-
+    this.changeCanvasWidth = this.changeCanvasWidth.bind(this);
+    this.changeCanvasHeight = this.changeCanvasHeight.bind(this);
     //flags
     this.ttFlag = false; //only show tt after moving mouse, therefore allowing data to be loaded in first
   }
@@ -417,6 +418,25 @@ class App extends React.Component {
     );
   }
 
+  changeCanvasWidth(event) {
+    let x = 630;
+    if (Number.isInteger(Number(event.target.value))) {
+      this.canvasWidth = Number(event.target.value);
+      console.log(this.canvasWidth);
+    } else {
+      console.log("ERROR, INVALID VALUE");
+    }
+  }
+
+  changeCanvasHeight(event) {
+    let y = 630;
+    if (Number.isInteger(Number(event.target.value))) {
+      this.canvasHeight = Number(event.target.value);
+    } else {
+      console.log("ERROR, INVALID VALUE");
+    }
+  }
+
   componentDidMount() {
     // this.myP5 = new p5(this.Sketch, this.myRef.current);
     //write axios as promise to ensure data from server before continuing
@@ -666,6 +686,29 @@ class App extends React.Component {
                 <button onClick={onClickVert}>Clear</button>
               </TabPanel>
             </Tabs>
+            <div id="coordSettings">
+              <form>
+                <label>Plane Width</label>
+                <br />
+                <input
+                  type="text"
+                  name="planeSize"
+                  // value={this.canvasWidth}
+                  onChange={this.changeCanvasWidth}
+                />
+                <br />
+                <label>Plane Height</label>
+                <br />
+                <input
+                  type="text"
+                  name="planeSize"
+                  // value={this.canvasHeight}
+                  onChange={this.changeCanvasHeight}
+                />
+                <br />
+                <input type="submit" value="submit" />
+              </form>
+            </div>
           </div>
         </div>
         <div id="infoSectionFlex">
