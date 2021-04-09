@@ -70,6 +70,8 @@ class App extends React.Component {
     this.delToolTip = this.delToolTip.bind(this);
     this.changeCanvasWidth = this.changeCanvasWidth.bind(this);
     this.changeCanvasHeight = this.changeCanvasHeight.bind(this);
+    this.changeLimit = this.changeLimit.bind(this);
+
     //flags
     this.ttFlag = false; //only show tt after moving mouse, therefore allowing data to be loaded in first
   }
@@ -471,6 +473,92 @@ class App extends React.Component {
     }
   }
 
+  changeLimit(event) {
+    console.log(event.target.name);
+    const tempGrid = this.state.gridSize;
+    if (Number.isInteger(Number(event.target.value))) {
+      console.log(tempGrid);
+      if (event.target.name == "x1Limit") {
+        if (Number(event.target.value) >= 0) {
+          tempGrid[0] = 0;
+        } else {
+          tempGrid[0] = Number(event.target.value);
+        }
+      } else if (event.target.name == "x2Limit") {
+        tempGrid[1] = Number(event.target.value);
+      } else if (event.target.name == "y1Limit") {
+        if (Number(event.target.value) >= 0) {
+          tempGrid[2] = 0;
+        } else {
+          tempGrid[2] = Number(event.target.value);
+        }
+      } else if (event.target.name == "y2Limit") {
+        tempGrid[3] = Number(event.target.value);
+      }
+      this.setState({ gridSize: tempGrid });
+
+      this.gridHeight =
+        this.canvasHeight /
+        (Math.abs(this.state.gridSize[3]) + Math.abs(this.state.gridSize[2]));
+      this.gridWidth =
+        this.canvasWidth /
+        (Math.abs(this.state.gridSize[1]) + Math.abs(this.state.gridSize[0]));
+      this.originx =
+        this.canvasWidth *
+        (Math.abs(this.state.gridSize[0]) /
+          (Math.abs(this.state.gridSize[1]) +
+            Math.abs(this.state.gridSize[0])));
+      this.originy =
+        this.canvasHeight *
+        (Math.abs(this.state.gridSize[3]) /
+          (Math.abs(this.state.gridSize[3]) +
+            Math.abs(this.state.gridSize[2])));
+      //if they min and max coordinates are same sign, fix starting coord
+      this.startGridV = this.state.gridSize[0];
+      this.startGridX = this.state.gridSize[2];
+
+      this.endGridV = this.state.gridSize[1];
+      this.endGridX = this.state.gridSize[3];
+
+      //coord plane adjustments
+      if (
+        Math.sign(this.state.gridSize[3]) == Math.sign(this.state.gridSize[2])
+      ) {
+        this.gridHeight = Math.abs(
+          this.canvasHeight /
+            (Math.abs(this.state.gridSize[3]) -
+              Math.abs(this.state.gridSize[2]))
+        );
+      }
+
+      if (
+        Math.sign(this.state.gridSize[1]) == Math.sign(this.state.gridSize[0])
+      ) {
+        this.gridWidth = Math.abs(
+          this.canvasWidth /
+            (Math.abs(this.state.gridSize[1]) -
+              Math.abs(this.state.gridSize[0]))
+        );
+      }
+
+      if (this.state.gridSize[0] > 0) {
+        this.originx = 0;
+      } else if (this.state.gridSize[1] < 0) {
+        this.originx = this.canvasWidth;
+      }
+
+      if (this.state.gridSize[2] > 0) {
+        this.originy = this.canvasHeight;
+      } else if (this.state.gridSize[3] < 0) {
+        this.originy = 0;
+      }
+    } else {
+      console.log("ERROR, INVALID VALUE");
+    }
+
+    this.forceUpdate();
+  }
+
   componentDidMount() {
     // this.myP5 = new p5(this.Sketch, this.myRef.current);
     //write axios as promise to ensure data from server before continuing
@@ -512,6 +600,7 @@ class App extends React.Component {
     ));
 
     /* //draws and updates grids */
+
     const cPlane = [];
 
     for (var i = this.startGridV; i <= this.endGridV; i++) {
@@ -603,37 +692,6 @@ class App extends React.Component {
       </text>,
     ]);
 
-    //coord plane adjustments
-    if (
-      Math.sign(this.state.gridSize[3]) == Math.sign(this.state.gridSize[2])
-    ) {
-      gridHeight = Math.abs(
-        canvasHeight /
-          (Math.abs(this.state.gridSize[3]) - Math.abs(this.state.gridSize[2]))
-      );
-    }
-
-    if (
-      Math.sign(this.state.gridSize[1]) == Math.sign(this.state.gridSize[0])
-    ) {
-      gridWidth = Math.abs(
-        canvasWidth /
-          (Math.abs(this.state.gridSize[1]) - Math.abs(this.state.gridSize[0]))
-      );
-    }
-
-    if (this.state.gridSize[0] > 0) {
-      originx = 0;
-    } else if (this.state.gridSize[1] < 0) {
-      originx = canvasWidth;
-    }
-
-    if (this.state.gridSize[2] > 0) {
-      originy = canvasHeight;
-    } else if (this.state.gridSize[3] < 0) {
-      originy = 0;
-    }
-
     // console.log(this.mouseCoords);
     return (
       <div>
@@ -686,62 +744,98 @@ class App extends React.Component {
                 </g>
               </svg>
             </div>
-            <Tabs orientation="vertical">
-              <TabList>
-                <Tab>Vertices</Tab>
-                <Tab>Exterior Angles</Tab>
-                <Tab>Interior Angles</Tab>
-                <Tab>Line Lengths</Tab>
-                <Tab>Line Slopes</Tab>
-              </TabList>
+            <div id="settings">
+              <Tabs orientation="vertical">
+                <TabList>
+                  <Tab>Vertices</Tab>
+                  <Tab>Exterior Angles</Tab>
+                  <Tab>Interior Angles</Tab>
+                  <Tab>Line Lengths</Tab>
+                  <Tab>Line Slopes</Tab>
+                </TabList>
 
-              <TabPanel>
-                <div className="box">{this.verticesTab(listItems)}</div>
-                <button onClick={onClickVert}>Clear</button>
-              </TabPanel>
+                <TabPanel>
+                  <div className="box">{this.verticesTab(listItems)}</div>
+                  <button onClick={onClickVert}>Clear</button>
+                </TabPanel>
 
-              <TabPanel>
-                <div className="box">{this.extAngleTab(extAnglesList)}</div>
-                <button onClick={onClickVert}>Clear</button>
-              </TabPanel>
+                <TabPanel>
+                  <div className="box">{this.extAngleTab(extAnglesList)}</div>
+                  <button onClick={onClickVert}>Clear</button>
+                </TabPanel>
 
-              <TabPanel>
-                <div className="box">{this.intAngleTab(intAnglesList)}</div>
-                <button onClick={onClickVert}>Clear</button>
-              </TabPanel>
+                <TabPanel>
+                  <div className="box">{this.intAngleTab(intAnglesList)}</div>
+                  <button onClick={onClickVert}>Clear</button>
+                </TabPanel>
 
-              <TabPanel>
-                <div className="box">{this.lineLenTab(lineLenList)}</div>
-                <button onClick={onClickVert}>Clear</button>
-              </TabPanel>
+                <TabPanel>
+                  <div className="box">{this.lineLenTab(lineLenList)}</div>
+                  <button onClick={onClickVert}>Clear</button>
+                </TabPanel>
 
-              <TabPanel>
-                <div className="box">{this.lineSlopeTab(lineSlopeList)}</div>
-                <button onClick={onClickVert}>Clear</button>
-              </TabPanel>
-            </Tabs>
-            <div id="coordSettings">
-              <form>
-                <label>Plane Width</label>
-                <br />
-                <input
-                  type="text"
-                  name="planeSize"
-                  // value={this.canvasWidth}
-                  onChange={this.changeCanvasWidth}
-                />
-                <br />
-                <label>Plane Height</label>
-                <br />
-                <input
-                  type="text"
-                  name="planeSize"
-                  // value={this.canvasHeight}
-                  onChange={this.changeCanvasHeight}
-                />
-                <br />
-                <input type="submit" value="submit" />
-              </form>
+                <TabPanel>
+                  <div className="box">{this.lineSlopeTab(lineSlopeList)}</div>
+                  <button onClick={onClickVert}>Clear</button>
+                </TabPanel>
+              </Tabs>
+              <div id="coordSettings">
+                <form className="setForm">
+                  <label>Plane Width</label>
+                  <br />
+                  <input
+                    type="text"
+                    name="planeSize"
+                    // value={this.canvasWidth}
+                    onChange={this.changeCanvasWidth}
+                  />
+                  <br />
+                  <label>Plane Height</label>
+                  <br />
+                  <input
+                    type="text"
+                    name="planeSize"
+                    // value={this.canvasHeight}
+                    onChange={this.changeCanvasHeight}
+                  />
+                  <br />
+                  <input type="submit" value="submit" />
+                </form>
+                <form className="setForm">
+                  <label>(-)X Limit</label>
+                  <br />
+                  <input
+                    type="text"
+                    name="x1Limit"
+                    onChange={this.changeLimit}
+                  ></input>
+                  <br></br>
+                  <label>(+)X Limit</label>
+                  <br></br>
+                  <input
+                    type="text"
+                    name="x2Limit"
+                    onChange={this.changeLimit}
+                  ></input>
+                  <br></br>
+                  <label>(-)Y Limit</label>
+                  <br></br>
+                  <input
+                    type="text"
+                    name="y1Limit"
+                    onChange={this.changeLimit}
+                  ></input>
+                  <br></br>
+                  <label>(+)Y Limit</label>
+                  <br></br>
+                  <input
+                    type="text"
+                    name="y2Limit"
+                    onChange={this.changeLimit}
+                  ></input>
+                  <br></br>
+                </form>
+              </div>
             </div>
           </div>
         </div>

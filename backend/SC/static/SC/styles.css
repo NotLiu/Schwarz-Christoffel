@@ -98,7 +98,7 @@ li {
 
 .react-tabs {
   display: flex;
-  margin-left: 36px;
+
   width: 470px;
   height: 170px;
   border: 1px solid #3c3e43;
@@ -153,4 +153,21 @@ li {
 
 .panel-content {
   text-align: left;
+}
+
+#settings {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-left: 36px;
+}
+
+#coordsettings {
+  display: flex;
+  flex-direction: row;
+  margin-top: 1em;
+}
+
+.setForm {
+  margin-right: 0.5em;
 }
