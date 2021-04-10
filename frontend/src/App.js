@@ -57,6 +57,9 @@ class App extends React.Component {
     this.svg = React.createRef();
     this.tooltip = React.createRef();
 
+    this.setX = null;
+    this.setY = null;
+
     //bind functions
     this.changeMouseCoords = this.changeMouseCoords.bind(this);
     this.customRoundX = this.customRoundX.bind(this);
@@ -71,6 +74,8 @@ class App extends React.Component {
     this.changeCanvasWidth = this.changeCanvasWidth.bind(this);
     this.changeCanvasHeight = this.changeCanvasHeight.bind(this);
     this.changeLimit = this.changeLimit.bind(this);
+    this.submitVertex = this.submitVertex.bind(this);
+    this.pushVert = this.pushVert.bind(this);
 
     //flags
     this.ttFlag = false; //only show tt after moving mouse, therefore allowing data to be loaded in first
@@ -161,14 +166,14 @@ class App extends React.Component {
     return -vertex * this.gridHeight + this.originy + ySep;
   }
 
-  mouseClicked() {
+  pushVert(vx, vy) {
     // //flag to make sure data is set before rendering
     // this.setState({ polygon: false });
     //add new vertices;
     this.ttFlag = false;
     let new_vert = [
-      this.customRoundX(this.state.mouseCoords[0], this.gridWidth).toFixed(2),
-      -this.customRoundY(this.state.mouseCoords[1], this.gridHeight).toFixed(2),
+      this.customRoundX(vx, this.gridWidth).toFixed(2),
+      -this.customRoundY(vy, this.gridHeight).toFixed(2),
     ];
     let flag = 0;
 
@@ -184,10 +189,10 @@ class App extends React.Component {
 
     if (
       flag == 0 &&
-      this.state.mouseCoords[0] < this.canvasWidth &&
-      this.state.mouseCoords[0] > 0 &&
-      this.state.mouseCoords[1] > 0 &&
-      this.state.mouseCoords[1] < this.canvasHeight
+      vx < this.canvasWidth &&
+      vx > 0 &&
+      vy > 0 &&
+      vy < this.canvasHeight
     ) {
       // create duplicate of state array and append new vertex
       const vertices = [...this.state.vertices, new_vert];
@@ -196,6 +201,10 @@ class App extends React.Component {
     }
 
     this.plotVertices(new_vert);
+  }
+
+  mouseClicked() {
+    this.pushVert(this.state.mouseCoords[0], this.state.mouseCoords[1]);
   }
 
   changeMouseCoords(evt) {
@@ -559,6 +568,16 @@ class App extends React.Component {
     this.forceUpdate();
   }
 
+  submitVertex(event) {
+    console.log("submit " + this.setX + "XX " + this.setY);
+    this.pushVert(
+      this.vertexPlotConversionX(this.setX),
+      this.vertexPlotConversionY(this.setY)
+    );
+
+    event.preventDefault();
+  }
+
   componentDidMount() {
     // this.myP5 = new p5(this.Sketch, this.myRef.current);
     //write axios as promise to ensure data from server before continuing
@@ -834,6 +853,32 @@ class App extends React.Component {
                     onChange={this.changeLimit}
                   ></input>
                   <br></br>
+                </form>
+                <form className="setForm" onSubmit={this.submitVertex}>
+                  <label>Input Vertex</label>
+                  <label>X</label>
+                  <br />
+                  <input
+                    type="text"
+                    name="X"
+                    // value={this.canvasWidth}
+                    onChange={(event) => {
+                      this.setX = event.target.value;
+                    }}
+                  />
+                  <br />
+                  <label>Y</label>
+                  <br />
+                  <input
+                    type="text"
+                    name="Y"
+                    // value={this.canvasHeight}
+                    onChange={(event) => {
+                      this.setY = event.target.value;
+                    }}
+                  />
+                  <br />
+                  <input type="submit" value="submit" />
                 </form>
               </div>
             </div>
