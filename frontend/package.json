@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.21.1",
+    "fs": "^0.0.1-security",
     "js-cookie": "^2.2.1",
     "p5": "^1.2.0",
     "react": "^17.0.1",

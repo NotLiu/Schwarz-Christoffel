@@ -30,6 +30,8 @@ class App extends React.Component {
       plotTooltip: [],
     };
 
+    this.dataStr = "data:text/json;charset=utf-8,";
+    this.dlName = "vertices.json";
     this.canvasWidth = 630;
     this.canvasHeight = 630;
     this.gridHeight =
@@ -76,9 +78,45 @@ class App extends React.Component {
     this.changeLimit = this.changeLimit.bind(this);
     this.submitVertex = this.submitVertex.bind(this);
     this.pushVert = this.pushVert.bind(this);
+    this.onClickVert = this.onClickVert.bind(this);
+
+    //file functions
+    this.writeVFile = this.writeVFile.bind(this);
+    this.uploadVFile = this.uploadVFile.bind(this);
 
     //flags
     this.ttFlag = false; //only show tt after moving mouse, therefore allowing data to be loaded in first
+  }
+
+  writeVFile() {
+    console.log("AAAAAA", this.state.vertices);
+    const jsonContent = JSON.stringify([...this.state.vertices]);
+    this.dataStr =
+      "data:text/json;charset=utf-8," + encodeURIComponent(jsonContent);
+  }
+
+  uploadVFile(e) {
+    this.onClickVert();
+    const f = new FileReader();
+    console.log("ZZZZZZZ");
+    console.log(e.target.files);
+    f.readAsText(e.target.files[0], "UTF-8");
+    f.onload = (e) => {
+      const tempArray = e.target.result
+        .replaceAll("[", "")
+        .replaceAll("]", "")
+        .replaceAll('"', "")
+        .split(",");
+
+      const vertices = [];
+      for (let i = 0; i < tempArray.length; i += 2) {
+        let tempVert = [Number(tempArray[i]), Number(tempArray[i + 1])];
+        vertices.push(tempVert);
+        this.plotVertices(tempVert);
+      }
+
+      this.setState({ vertices });
+    };
   }
 
   async getPolyData(vertices) {
@@ -196,8 +234,11 @@ class App extends React.Component {
     ) {
       // create duplicate of state array and append new vertex
       const vertices = [...this.state.vertices, new_vert];
+
       this.getPolyData(vertices);
-      this.setState({ vertices });
+      this.setState({ vertices }, () => {
+        this.writeVFile();
+      });
     }
 
     this.plotVertices(new_vert);
@@ -583,15 +624,15 @@ class App extends React.Component {
     //write axios as promise to ensure data from server before continuing
   }
 
+  onClickVert = () => {
+    this.setState({ vertices: [] });
+    this.setState({ intAngles: [] });
+    this.setState({ extAngles: [] });
+    this.setState({ lineLengths: [] });
+    this.setState({ lineSlopes: [] });
+    this.setState({ planePlotVertices: [] });
+  };
   render() {
-    const onClickVert = () => {
-      this.setState({ vertices: [] });
-      this.setState({ intAngles: [] });
-      this.setState({ extAngles: [] });
-      this.setState({ lineLengths: [] });
-      this.setState({ lineSlopes: [] });
-      this.setState({ planePlotVertices: [] });
-    };
     const listItems = this.state.vertices.map((vertex, index) => (
       <li key={index} className={"vertex" + this.state.vertices.length}>
         {String.fromCharCode(65 + index)}: ({vertex[0]}, {vertex[1]})
@@ -775,27 +816,27 @@ class App extends React.Component {
 
                 <TabPanel>
                   <div className="box">{this.verticesTab(listItems)}</div>
-                  <button onClick={onClickVert}>Clear</button>
+                  <button onClick={this.onClickVert}>Clear</button>
                 </TabPanel>
 
                 <TabPanel>
                   <div className="box">{this.extAngleTab(extAnglesList)}</div>
-                  <button onClick={onClickVert}>Clear</button>
+                  <button onClick={this.onClickVert}>Clear</button>
                 </TabPanel>
 
                 <TabPanel>
                   <div className="box">{this.intAngleTab(intAnglesList)}</div>
-                  <button onClick={onClickVert}>Clear</button>
+                  <button onClick={this.onClickVert}>Clear</button>
                 </TabPanel>
 
                 <TabPanel>
                   <div className="box">{this.lineLenTab(lineLenList)}</div>
-                  <button onClick={onClickVert}>Clear</button>
+                  <button onClick={this.onClickVert}>Clear</button>
                 </TabPanel>
 
                 <TabPanel>
                   <div className="box">{this.lineSlopeTab(lineSlopeList)}</div>
-                  <button onClick={onClickVert}>Clear</button>
+                  <button onClick={this.onClickVert}>Clear</button>
                 </TabPanel>
               </Tabs>
               <div id="coordSettings">
@@ -856,6 +897,7 @@ class App extends React.Component {
                 </form>
                 <form className="setForm" onSubmit={this.submitVertex}>
                   <label>Input Vertex</label>
+                  <br></br>
                   <label>X</label>
                   <br />
                   <input
@@ -879,6 +921,25 @@ class App extends React.Component {
                   />
                   <br />
                   <input type="submit" value="submit" />
+                </form>
+              </div>
+              <div id="fileFlex">
+                <div className="file">
+                  Export JSON
+                  <a id="download" href={this.dataStr} download={this.dlName}>
+                    DOWNLOAD
+                  </a>
+                </div>
+                <form className="file">
+                  Import JSON
+                  <input
+                    type="file"
+                    onClick={() => {
+                      this.value = null;
+                      return false;
+                    }}
+                    onChange={this.uploadVFile}
+                  ></input>
                 </form>
               </div>
             </div>

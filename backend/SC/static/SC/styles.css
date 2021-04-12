@@ -166,6 +166,22 @@ li {
   display: flex;
   flex-direction: row;
   margin-top: 1em;
+  color: floralwhite;
+}
+
+#coordsettings > form > label {
+  color: floralwhite;
+}
+
+#fileFlex {
+  display: flex;
+  flex-direction: row;
+  margin-top: 1em;
+  color: floralwhite;
+}
+.file {
+  display: flex;
+  flex-direction: column;
 }
 
 .setForm {
