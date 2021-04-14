@@ -34,8 +34,6 @@ class SchwarzChristoffel:
 
         #list of functions in the form I_{i} - λ_{i}*I{l} = 0, where l is our first initial guess. in this case, l = 0, since our guesses are a_{0} and a_{1}
         self.F = self.setF()
-
-        print('BEFORE:', self.a)
         
     def approximateRealMapping(self):
         # map from real axis to z-plane vertices
@@ -48,72 +46,112 @@ class SchwarzChristoffel:
         #mapping[float('inf')] = vertices[-1]
         return mapping
 
-    def calcI(self, a=None, aDirIndex=None, hModifier=0):
-                #a is a list here
-        Irange = range(self.N - 1)
-        aRange = range(2, self.N - 1)
-        I = [None for i in range(self.N - 1)]
-        a = list(self.a.keys()) if a is None else a
+    # def findIConstant(self, a, i):
+    #     result = ((a[i + 1] - a[i]) / 2) ** (1 - self.β[i] - self.β[i + 1])
+    #     return result
 
-        if aDirIndex is not None:
-            a[aDirIndex] = a[aDirIndex] + hModifier
+    # def findI_JTerm(self, a, i, j): return lambda i: lambda x: 1 / \
+    #     (abs(( (((a[i + 1] - a[i]) * x) / 2) + ((a[i + 1] + a[i]) / 2) - a[j])) ** self.β[j])
+    
+    # def findI(self, a, i, terms): return lambda x: self.findIConstant(
+    #     a, i) * self.findIAux(1, x, i, terms, len(terms) - 1) 
+    
+    # def findIAux(self, result, x, i, terms, index): return result * self.findIAux(result, x, i, terms, index - 1) if index >= 0 else terms[index](i)(x)
 
-        def findIConstant(i):
-            return ((a[i + 1] - a[i]) / 2) ** (1 - self.β[i] - self.β[i + 1])
+    # def calcI(self, a=None, aDirIndex=None, hModifier=0):
 
-        def findI_JTerm(j): return lambda i: lambda x: 1 / \
-            abs(((a[i + 1] - a[i]) * x / 2 + (a[i + 1] + a[i]) / 2 - a[j])) ** self.β[j]
+    #     I = [None for i in range(self.N - 1)]
+    #     a = list(self.a.keys()) if a is None else a[:]
         
-        def findI(i, terms): return lambda x: findIConstant(
-            i) * findIAux(1, x, i, terms, len(terms) - 1) 
-        
-        def findIAux(result, x, i, terms, index): return result * findIAux(result, x, i, terms, index - 1) if index > 0 else terms[index](i)(x)
+    #     if aDirIndex is not None:
+    #         a[aDirIndex] = a[aDirIndex] + hModifier
 
-        for i in range(self.N - 1):
+    #     for i in range(self.N - 1):
+    #         terms = []
+    #         for j in range(self.N - 1):
+    #             if j != i and j != i + 1:
+    #                 terms.append(self.findI_JTerm(a, i, j))
+    #         α = -self.β[i]
+    #         β = -self.β[i+1]
+    #         I[i] = self.gaussJacobiQuad(self.findI(a, i, terms), α, β)
+    #     print(I)
+    #     return I
+
+    def calcI(self, a=None, aDirIndex=None, hModifier=None):
+        I = [None for i in range(self.N - 2)]
+        if a is None:
+            a = list(self.a.keys())
+        else:
+            a = a[:]
+        
+        a = a[2:]
+        print(len(I))
+        if hModifier is not None and aDirIndex is not None:
+            a[aDirIndex] += hModifier
+        
+        print(f'a: {a}')
+
+        for i in range(len(I)):
+            #getting terms
             terms = []
-            for j in range(self.N - 1):
-                if j != i and j != i + 1:
-                    terms.append(findI_JTerm(j))
-            α = -self.β[i]
-            β = -self.β[i-1]
-            I[i] = self.gaussJacobiQuad(findI(i, terms), α, β)
-        return I
+            staticTerm = ((a[i + 1] - a[i]) / 2) ** (1 - self.β[i] - self.β[i + 1])
+            for n in range(len(I)):
+                if n != i:
+                    print("n",n,"i", i)
+                    terms.append(
+                        lambda x: 1 / ( abs( x * ((a[i+1] - a[i]) / 2) + ((a[i+1] + a[i]) / 2) - a[n] ) ** self.β[n] )
+                    )
 
+            α = -self.β[i]
+            β = -self.β[i+1]  
+            I[i] = self.calcIAux(a, staticTerm, terms, α, β)
+        print(I)
+        return I
+                    
+    def calcIAux(self, a, staticTerm, terms, α, β):
+
+        def innerIntegralFunc(x, termIndex=0):
+            if termIndex == len(terms) - 1:
+                print("static term", staticTerm)
+                return staticTerm * terms[termIndex](x)
+                print("current term: ",terms[termIndex(x)])
+            return terms[termIndex](x) * innerIntegralFunc(x, termIndex + 1)
+        
+        return self.gaussJacobiQuad(innerIntegralFunc, α, β)
+        
     def setF(self):
         F = []
+        def f(i):
+            return lambda I: I[i+1] - self.λ[i][0] * I[0]
         for i in range(len(self.λ)):
-            def f(I):
-                return I[i] - self.λ[i][0] * I[0]
-            F.append(f)
+            F.append(f(i))
         return F
 
     def getParameters(self):
         a_keys = list(self.a.keys())
         aPrev_keys = None
         values = list(self.a.values())
-        
-        while not self.validateParams(a_keys, aPrev_keys):
+
+        while not self.validateParams(a_keys, aPrev_keys): #newton raphson
             I = self.calcI(a_keys)
             F = np.reshape([func(I) for func in self.F], (len(self.F), 1))
-            J = self.generateJacobiMatrix(I)
+            J = self.generateJacobiMatrix(I, a_keys)
             invJ = self.getInverseMatrix(J)
-            
-            aPrev_keys = a_keys
-            a_keys, aPrev_keys = a_keys[2:], aPrev_keys[2:]
-            a_keys, aPrev_keys = np.reshape(a_keys, (len(a_keys), 1)), np.reshape(a_keys, (len(aPrev_keys), 1))
-            a_keys = a_keys - np.matmul(invJ, F)
 
-        firstTwo = list(self.a.keys())[:2]
+            aPrev_keys = a_keys
+            a_keys, aPrev_keys = a_keys[:], aPrev_keys[:]
+            
+            a_keys_vector = np.reshape(a_keys[2:], (len(a_keys[2:]), 1)) - np.matmul(invJ, F)
+            a_keys = [ key for key in aPrev_keys[:2]]
+            for aIndex in range(len(a_keys_vector)):
+                a_keys.append(a_keys_vector.item((aIndex, 0)))
+
         self.a = {}
-        self.a[firstTwo[0]] = values[0]
-        self.a[firstTwo[1]] = values[1]
 
         for aIndex in range(len(a_keys)):
-            self.a[float(a_keys[aIndex])] = values[2 + aIndex]
+            self.a[float(a_keys[aIndex])] = values[aIndex]
 
-        print('AFTER:',self.a)
-            
-                
+
     def getInverseMatrix(self, matrix):
         inv = matrix
         try:
@@ -125,9 +163,8 @@ class SchwarzChristoffel:
                 raise e
         return inv
 
-    def generateJacobiMatrix(self, I):
+    def generateJacobiMatrix(self, I, a):
         column = []
-        a = list(self.a.keys())
         # Create Jacobi matrix
         for i in range(self.N - 2):
             row = []
@@ -135,8 +172,8 @@ class SchwarzChristoffel:
                 row.append(self.calcSLFirstDerivative(a, i, j))
             column.append(row)
         derivativeMatrix = np.reshape(column, (len(row), len(column)))
-        
-        derivativeColumn = np.matrix([self.calcSLFirstDerivative(a, 0, i) for i in range(1, self.N - 2)]).T
+        derivativeColumn = np.matrix([self.calcSLFirstDerivative(a, 0, i) for i in range(1, self.N - 1)]).T
+        derivativeColumn = np.rot90(derivativeColumn)
         rightTerm = self.λ * derivativeColumn
         J = np.subtract(derivativeMatrix, self.λ * derivativeColumn)
         return J
@@ -179,16 +216,28 @@ class SchwarzChristoffel:
     def gaussJacobiQuad(self, func, α, β, n=10):
         result = special.j_roots(n, α, β)
         points, weights = result[0], result[1]
+        #print([func(points[x]) for x in range(n)])
         return sum([weights[x]*func(points[x]) for x in range(n)])
 
     def calcSLFirstDerivative(self, a, iVal, aDirIndex, h=0.01):
         #match the equation:
         # ðIk/ðai ~ [Ik(ai - 2h) - 8Ik(ai-h) + 8Ik(ai + h) - Ik(ai + 2h)]/12h
-        term1 = self.calcI(a, aDirIndex, -2 * h)[iVal]
-        term2 = 8*self.calcI(a, aDirIndex, -h)[iVal]
-        term3 = 8*self.calcI(a, aDirIndex, h)[iVal]
-        term4 = self.calcI(a, aDirIndex, 2*h)[iVal]
-        return (term1 - term2 + term3 - term4) / 12*h
+
+        print('calc term1')
+        term1 = self.calcI(a.copy(), aDirIndex, -2 * h)[iVal]
+        
+        print('calc term2')
+        term2 = self.calcI(a.copy(), aDirIndex, -h)[iVal]
+        
+        print('calc term3')
+        term3 = self.calcI(a.copy(), aDirIndex, h)[iVal]
+        
+        print('calc term4')
+        term4 = self.calcI(a.copy(), aDirIndex, 2 * h)[iVal]
+
+        result = (term1 - 8 * term2 + 8 * term3 - term4) / (12 * h)
+        print(result)
+        return result
 
     def calc(self):
         # input params into sc integral
