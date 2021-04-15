@@ -187,3 +187,11 @@ li {
 .setForm {
   margin-right: 0.5em;
 }
+
+.data {
+  padding: 3px 5px;
+}
+.dataHover {
+  padding: 3px 5px;
+  background-color: darkseagreen;
+}

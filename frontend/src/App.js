@@ -28,6 +28,7 @@ class App extends React.Component {
       mouseCoords: [0, 0],
       planePlotVertices: [],
       plotTooltip: [],
+      dataHover: null,
     };
 
     this.dataStr = "data:text/json;charset=utf-8,";
@@ -61,8 +62,6 @@ class App extends React.Component {
 
     this.setX = null;
     this.setY = null;
-
-    this.hoverData = { backgroundColor: "floralwhite" };
 
     //bind functions
     this.changeMouseCoords = this.changeMouseCoords.bind(this);
@@ -354,6 +353,7 @@ class App extends React.Component {
         left = left - width + 20;
         top = top - height + 20;
       }
+      this.state.dataHover = event.target.id;
 
       plotTooltip.push(
         <rect
@@ -432,6 +432,7 @@ class App extends React.Component {
 
   delToolTip() {
     this.setState({ plotTooltip: [] });
+    this.state.dataHover = null;
   }
 
   //data tabs
@@ -639,31 +640,71 @@ class App extends React.Component {
     this.setState({ planePlotVertices: [] });
   };
   render() {
-    const listItems = this.state.vertices.map((vertex, index) => (
-      <li key={index} className={"vertex" + index}>
-        {String.fromCharCode(65 + index)}: ({vertex[0]}, {vertex[1]})
-      </li>
-    ));
-    const extAnglesList = this.state.extAngles.map((angle, index) => (
-      <li key={index} className={"vertex" + index}>
-        ({angle.slice(0, 5) + parseFloat(angle.slice(5)).toFixed(2)})
-      </li>
-    ));
-    const intAnglesList = this.state.intAngles.map((angle, index) => (
-      <li key={index} className={"vertex" + index}>
-        ({angle.slice(0, 5) + parseFloat(angle.slice(5)).toFixed(2)})
-      </li>
-    ));
-    const lineLenList = this.state.lineLengths.map((len, index) => (
-      <li key={index} className={"vertex" + index}>
-        ({len.slice(0, 7) + parseFloat(len.slice(7)).toFixed(2)})
-      </li>
-    ));
-    const lineSlopeList = this.state.lineSlopes.map((slope, index) => (
-      <li key={index} className={"vertex" + index}>
-        ({slope.slice(0, 7) + parseFloat(slope.slice(7)).toFixed(2)})
-      </li>
-    ));
+    const listItems = this.state.vertices.map((vertex, index) => {
+      let c = "";
+      if (this.state.dataHover == index) {
+        c = "dataHover";
+      } else {
+        c = "data";
+      }
+      return (
+        <li key={index} className={"vertex" + index + " " + c}>
+          {String.fromCharCode(65 + index)}: ({vertex[0]}, {vertex[1]})
+        </li>
+      );
+    });
+    const extAnglesList = this.state.extAngles.map((angle, index) => {
+      let c = "";
+      if (this.state.dataHover == index) {
+        c = "dataHover";
+      } else {
+        c = "data";
+      }
+      return (
+        <li key={index} className={"vertex" + index + " " + c}>
+          ({angle.slice(0, 5) + parseFloat(angle.slice(5)).toFixed(2)})
+        </li>
+      );
+    });
+    const intAnglesList = this.state.intAngles.map((angle, index) => {
+      let c = "";
+      if (this.state.dataHover == index) {
+        c = "dataHover";
+      } else {
+        c = "data";
+      }
+      return (
+        <li key={index} className={"vertex" + index + " " + c}>
+          ({angle.slice(0, 5) + parseFloat(angle.slice(5)).toFixed(2)})
+        </li>
+      );
+    });
+    const lineLenList = this.state.lineLengths.map((len, index) => {
+      let c = "";
+      if (this.state.dataHover == index) {
+        c = "dataHover";
+      } else {
+        c = "data";
+      }
+      return (
+        <li key={index} className={"vertex" + index + " " + c}>
+          ({len.slice(0, 7) + parseFloat(len.slice(7)).toFixed(2)})
+        </li>
+      );
+    });
+    const lineSlopeList = this.state.lineSlopes.map((slope, index) => {
+      let c = "";
+      if (this.state.dataHover == index) {
+        c = "dataHover";
+      } else {
+        c = "data";
+      }
+      return (
+        <li key={index} className={"vertex" + index + " " + c}>
+          ({slope.slice(0, 7) + parseFloat(slope.slice(7)).toFixed(2)})
+        </li>
+      );
+    });
 
     /* //draws and updates grids */
 
