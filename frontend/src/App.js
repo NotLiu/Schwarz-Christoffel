@@ -62,6 +62,8 @@ class App extends React.Component {
     this.setX = null;
     this.setY = null;
 
+    this.hoverData = { backgroundColor: "floralwhite" };
+
     //bind functions
     this.changeMouseCoords = this.changeMouseCoords.bind(this);
     this.customRoundX = this.customRoundX.bind(this);
@@ -115,7 +117,10 @@ class App extends React.Component {
         this.plotVertices(tempVert);
       }
 
-      this.setState({ vertices });
+      this.getPolyData(vertices);
+      this.setState({ vertices }, () => {
+        this.writeVFile();
+      });
     };
   }
 
@@ -210,7 +215,7 @@ class App extends React.Component {
     //add new vertices;
     this.ttFlag = false;
     let new_vert = [
-      this.customRoundX(vx, this.gridWidth).toFixed(2),
+      Number(this.customRoundX(vx, this.gridWidth).toFixed(2)),
       -this.customRoundY(vy, this.gridHeight).toFixed(2),
     ];
     let flag = 0;
@@ -359,6 +364,7 @@ class App extends React.Component {
           style={{ fill: "darkslategrey", stroke: "black", strokeWidth: "2" }}
           onMouseLeave={this.delToolTip}
           ref={this.tooltip}
+          className={event.target.className.baseVal.split(" ")[1]}
         />
       );
 
@@ -634,27 +640,27 @@ class App extends React.Component {
   };
   render() {
     const listItems = this.state.vertices.map((vertex, index) => (
-      <li key={index} className={"vertex" + this.state.vertices.length}>
+      <li key={index} className={"vertex" + index}>
         {String.fromCharCode(65 + index)}: ({vertex[0]}, {vertex[1]})
       </li>
     ));
     const extAnglesList = this.state.extAngles.map((angle, index) => (
-      <li key={index} className={"vertex" + this.state.vertices.length}>
+      <li key={index} className={"vertex" + index}>
         ({angle.slice(0, 5) + parseFloat(angle.slice(5)).toFixed(2)})
       </li>
     ));
     const intAnglesList = this.state.intAngles.map((angle, index) => (
-      <li key={index} className={"vertex" + this.state.vertices.length}>
+      <li key={index} className={"vertex" + index}>
         ({angle.slice(0, 5) + parseFloat(angle.slice(5)).toFixed(2)})
       </li>
     ));
     const lineLenList = this.state.lineLengths.map((len, index) => (
-      <li key={index} className={"vertex" + this.state.vertices.length}>
+      <li key={index} className={"vertex" + index}>
         ({len.slice(0, 7) + parseFloat(len.slice(7)).toFixed(2)})
       </li>
     ));
     const lineSlopeList = this.state.lineSlopes.map((slope, index) => (
-      <li key={index} className={"vertex" + this.state.vertices.length}>
+      <li key={index} className={"vertex" + index}>
         ({slope.slice(0, 7) + parseFloat(slope.slice(7)).toFixed(2)})
       </li>
     ));
