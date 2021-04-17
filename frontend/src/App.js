@@ -29,6 +29,9 @@ class App extends React.Component {
       planePlotVertices: [],
       plotTooltip: [],
       dataHover: null,
+      hoverSelect: null,
+      hoverStart: [],
+      hoverState: false,
     };
 
     this.dataStr = "data:text/json;charset=utf-8,";
@@ -80,10 +83,15 @@ class App extends React.Component {
     this.submitVertex = this.submitVertex.bind(this);
     this.pushVert = this.pushVert.bind(this);
     this.onClickVert = this.onClickVert.bind(this);
+    this.setHoverStateTrue = this.setHoverStateTrue.bind(this);
+    this.setHoverStateFalse = this.setHoverStateFalse.bind(this);
 
     //file functions
     this.writeVFile = this.writeVFile.bind(this);
     this.uploadVFile = this.uploadVFile.bind(this);
+
+    //refresh
+    this.refresh = this.refresh.bind(this);
 
     //flags
     this.ttFlag = false; //only show tt after moving mouse, therefore allowing data to be loaded in first
@@ -109,18 +117,28 @@ class App extends React.Component {
         .replaceAll('"', "")
         .split(",");
 
-      const vertices = [];
-      for (let i = 0; i < tempArray.length; i += 2) {
-        let tempVert = [Number(tempArray[i]), Number(tempArray[i + 1])];
+      this.refresh(tempArray);
+    };
+  }
+
+  refresh(vert = []) {
+    const vertices = [];
+    if (vert != []) {
+      for (let i = 0; i < vert.length; i += 2) {
+        let tempVert = [Number(vert[i]), Number(vert[i + 1])];
+
         vertices.push(tempVert);
+
         this.plotVertices(tempVert);
       }
+    } else {
+      vertices = this.state.vertices;
+    }
 
-      this.getPolyData(vertices);
-      this.setState({ vertices }, () => {
-        this.writeVFile();
-      });
-    };
+    this.getPolyData(vertices);
+    this.setState({ vertices }, () => {
+      this.writeVFile();
+    });
   }
 
   async getPolyData(vertices) {
@@ -147,7 +165,7 @@ class App extends React.Component {
 
       // console.log("EEEEERGERGERG");
       // console.log([...this.state.extAngles]);
-      console.log(angleSignal.data);
+      // console.log(angleSignal.data);
     } catch (err) {
       console.log(err);
     }
@@ -248,8 +266,27 @@ class App extends React.Component {
     this.plotVertices(new_vert);
   }
 
-  mouseClicked() {
-    this.pushVert(this.state.mouseCoords[0], this.state.mouseCoords[1]);
+  mouseClicked(event) {
+    console.log("ERPGO", event.target.tagName);
+    if (event.target.tagName == "svg") {
+      this.pushVert(this.state.mouseCoords[0], this.state.mouseCoords[1]);
+    } else {
+      this.setHoverStateTrue();
+      const currMC = [this.state.mouseCoords[0], this.state.mouseCoords[1]];
+      this.setState({ hoverStart: currMC });
+      this.setState({ hoverSelect: event.target.id });
+
+      if (event.target.tagName == "rect") {
+        this.delToolTip();
+      }
+    }
+  }
+
+  setHoverStateFalse() {
+    this.setState({ hoverState: false });
+  }
+  setHoverStateTrue() {
+    this.setState({ hoverState: true });
   }
 
   changeMouseCoords(evt) {
@@ -287,6 +324,7 @@ class App extends React.Component {
 
   plotPolygon() {
     const vertexList = [];
+    console.log(this.state.vertices);
     for (let i = 0; i < this.state.vertices.length; i++) {
       vertexList.push(
         this.vertexPlotConversionX(this.state.vertices[i][0]) +
@@ -313,6 +351,7 @@ class App extends React.Component {
     let planePlotVertices = this.state.planePlotVertices;
 
     this.setState(planePlotVertices);
+    this.setState({ vertices: [...this.state.vertices, vert] });
     console.log(this.state.planePlotVertices);
   }
 
@@ -333,7 +372,11 @@ class App extends React.Component {
   }
 
   plotToolTip = (event) => {
-    if (this.state.vertices.length >= 3 && this.ttFlag == true) {
+    if (
+      this.state.vertices.length >= 3 &&
+      this.ttFlag == true &&
+      !this.state.hoverState
+    ) {
       const vertX = this.state.vertices[event.target.id][0];
       const vertY = this.state.vertices[event.target.id][1];
 
@@ -814,6 +857,7 @@ class App extends React.Component {
                 ref={this.svg}
                 onMouseMove={this.changeMouseCoords}
                 onMouseDown={this.mouseClicked}
+                onMouseUp={this.setHoverStateFalse}
               >
                 <g id="planeFrame">{cPlane}</g>
                 <g id="planeData">
