@@ -6,7 +6,7 @@ from numpy.linalg import LinAlgError
 from scipy import special
 from scipy.optimize import newton
 from functools import reduce
-
+import debugpy
 
 class SchwarzChristoffel:
     def __init__(self, polygon):
@@ -28,9 +28,10 @@ class SchwarzChristoffel:
         self.c2 = 0
 
         #column vector of length ratios of all sides with respect to initial two guesses a{0} and a{1}'s z plane distances        
-        self.λ = [self.polygon.lines[i + 1].length / self.polygon.lines[0].length
-                  for i in range(len(self.polygon.lines) - 2)]
-        self.λ = np.reshape(self.λ, (len(self.λ), 1))
+        self.λ = [self.polygon.lines[i - 1].length / self.polygon.lines[0].length
+                  for i in range(1, len(self.polygon.lines) - 1)]
+        #self.λ = np.reshape(self.λ, (len(self.λ), 1))
+        print(self.λ)
 
         #list of functions in the form I_{i} - λ_{i}*I{l} = 0, where l is our first initial guess. in this case, l = 0, since our guesses are a_{0} and a_{1}
         self.F = self.setF()
@@ -77,44 +78,35 @@ class SchwarzChristoffel:
     #     print(I)
     #     return I
 
-    def calcI(self, a=None, aDirIndex=None, hModifier=None):
-        I = [None for i in range(self.N - 2)]
-        if a is None:
-            a = list(self.a.keys())
-        else:
-            a = a[:]
-        
-        a = a[2:]
-        print(len(I))
-        if hModifier is not None and aDirIndex is not None:
-            a[aDirIndex] += hModifier
-        
-        print(f'a: {a}')
+    def calcI(self, a):
+        debugpy.breakpoint()
+        I = [None for i in range(self.N - 1)]
+        a = a.copy()
 
-        for i in range(len(I)):
+        debugpy.breakpoint()
+        for i in range(1, self.N):
             #getting terms
             terms = []
-            staticTerm = ((a[i + 1] - a[i]) / 2) ** (1 - self.β[i] - self.β[i + 1])
-            for n in range(len(I)):
-                if n != i:
-                    print("n",n,"i", i)
+            staticTerm = ((a[i] - a[i-1]) / 2) ** (1 - self.β[i-1] - self.β[i])
+            for n in range(self.N):
+                if n != i and n != i + 1:
                     terms.append(
-                        lambda x: 1 / ( abs( x * ((a[i+1] - a[i]) / 2) + ((a[i+1] + a[i]) / 2) - a[n] ) ** self.β[n] )
+                        lambda x: 1 / ( abs( x * ((a[i] - a[i-1]) / 2) + ((a[i] + a[i-1]) / 2) - a[n] ) ** self.β[n] )
                     )
 
             α = -self.β[i]
-            β = -self.β[i+1]  
-            I[i] = self.calcIAux(a, staticTerm, terms, α, β)
-        print(I)
+            β = -self.β[i-1]
+            I[i-1] = self.calcIAux(a, staticTerm, terms, α, β)
         return I
                     
     def calcIAux(self, a, staticTerm, terms, α, β):
 
         def innerIntegralFunc(x, termIndex=0):
+            #debugpy.breakpoint()
             if termIndex == len(terms) - 1:
-                print("static term", staticTerm)
+                #print("static term", staticTerm)
                 return staticTerm * terms[termIndex](x)
-                print("current term: ",terms[termIndex(x)])
+                #print("current term: ",terms[termIndex(x)])
             return terms[termIndex](x) * innerIntegralFunc(x, termIndex + 1)
         
         return self.gaussJacobiQuad(innerIntegralFunc, α, β)
@@ -122,8 +114,8 @@ class SchwarzChristoffel:
     def setF(self):
         F = []
         def f(i):
-            return lambda I: I[i+1] - self.λ[i][0] * I[0]
-        for i in range(len(self.λ)):
+            return lambda I: I[i] - self.λ[i-1] * I[0]
+        for i in range(1, self.N-1):
             F.append(f(i))
         return F
 
@@ -132,8 +124,10 @@ class SchwarzChristoffel:
         aPrev_keys = None
         values = list(self.a.values())
 
-        while not self.validateParams(a_keys, aPrev_keys): #newton raphson
+        while not self.validateParams(a_keys, aPrev_keys):  #newton raphson
+            debugpy.breakpoint()
             I = self.calcI(a_keys)
+            debugpy.breakpoint()
             F = np.reshape([func(I) for func in self.F], (len(self.F), 1))
             J = self.generateJacobiMatrix(I, a_keys)
             invJ = self.getInverseMatrix(J)
@@ -141,7 +135,10 @@ class SchwarzChristoffel:
             aPrev_keys = a_keys
             a_keys, aPrev_keys = a_keys[:], aPrev_keys[:]
             
-            a_keys_vector = np.reshape(a_keys[2:], (len(a_keys[2:]), 1)) - np.matmul(invJ, F)
+            a_keys_vector = np.reshape(a_keys[2:], (len(a_keys[2:]), 1))
+            rightTerm = np.matmul(invJ, F)
+            debugpy.breakpoint()
+            a_keys_vector = a_keys_vector - rightTerm
             a_keys = [ key for key in aPrev_keys[:2]]
             for aIndex in range(len(a_keys_vector)):
                 a_keys.append(a_keys_vector.item((aIndex, 0)))
@@ -164,18 +161,27 @@ class SchwarzChristoffel:
         return inv
 
     def generateJacobiMatrix(self, I, a):
+        debugpy.breakpoint()
         column = []
         # Create Jacobi matrix
-        for i in range(self.N - 2):
+        for iVal in range(1, self.N - 1):
             row = []
-            for j in range(self.N - 2):
-                row.append(self.calcSLFirstDerivative(a, i, j))
+            for aDirIndex in range(2, self.N):
+                print(f'calculating dI_{iVal}/da_{aDirIndex}')
+                row.append(self.calcSLFirstDerivative(a, iVal, aDirIndex))
             column.append(row)
         derivativeMatrix = np.reshape(column, (len(row), len(column)))
-        derivativeColumn = np.matrix([self.calcSLFirstDerivative(a, 0, i) for i in range(1, self.N - 1)]).T
-        derivativeColumn = np.rot90(derivativeColumn)
-        rightTerm = self.λ * derivativeColumn
-        J = np.subtract(derivativeMatrix, self.λ * derivativeColumn)
+        
+        derivativeColumn = []
+        for aDirIndex in range(2, self.N):
+            
+            derivativeColumn.append(self.calcSLFirstDerivative(a, 0, aDirIndex))
+
+        print(self.λ, "\n", derivativeColumn)
+        rightTerm = np.reshape(self.λ, (len(self.λ), 1)) * derivativeColumn
+        print(rightTerm)
+        J = np.subtract(derivativeMatrix, rightTerm)
+        print(f'J: {J}')
         return J
 
     # def getSideLengths(self, n=100):
@@ -210,33 +216,36 @@ class SchwarzChristoffel:
             if δ > acceptableError: return False
         return True
 
-    def piProd(self, iterable):
-        return reduce(operator.mul, iterable)
-
     def gaussJacobiQuad(self, func, α, β, n=10):
         result = special.j_roots(n, α, β)
         points, weights = result[0], result[1]
         #print([func(points[x]) for x in range(n)])
-        return sum([weights[x]*func(points[x]) for x in range(n)])
+        return sum([weights[m]*func(points[m]) for m in range(n)])
 
     def calcSLFirstDerivative(self, a, iVal, aDirIndex, h=0.01):
         #match the equation:
         # ðIk/ðai ~ [Ik(ai - 2h) - 8Ik(ai-h) + 8Ik(ai + h) - Ik(ai + 2h)]/12h
 
-        print('calc term1')
-        term1 = self.calcI(a.copy(), aDirIndex, -2 * h)[iVal]
+        a1 = a[:]
+        a1[aDirIndex] += - 2 * h
+        term1 = self.calcI(a1) #[iVal]
         
-        print('calc term2')
-        term2 = self.calcI(a.copy(), aDirIndex, -h)[iVal]
+        a2 = a[:]
+        a2[aDirIndex] += - h
+        term2 = self.calcI(a2) #[iVal]
         
-        print('calc term3')
-        term3 = self.calcI(a.copy(), aDirIndex, h)[iVal]
+        a3 = a[:]
+        a3[aDirIndex] += h
+        term3 = self.calcI(a3) #[iVal]
         
-        print('calc term4')
-        term4 = self.calcI(a.copy(), aDirIndex, 2 * h)[iVal]
+        a4 = a[:]
+        a4[aDirIndex] += 2 * h
+        term4 = self.calcI(a4) #[iVal]
 
+        print(f'a1:{a1}\na2:{a2}\na3:{a3}\na4:{a4}')
+        print(f't1 {term1}\nt2 {term2}\nt3 {term3}\nt4 {term4}\n')
         result = (term1 - 8 * term2 + 8 * term3 - term4) / (12 * h)
-        print(result)
+        print(f'result: {result}')
         return result
 
     def calc(self):
