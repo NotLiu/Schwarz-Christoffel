@@ -29,7 +29,6 @@ class App extends React.Component {
       planePlotVertices: [],
       plotTooltip: [],
       dataHover: null,
-      hoverSelect: null,
       hoverStart: [],
       hoverState: false,
     };
@@ -66,6 +65,8 @@ class App extends React.Component {
     this.setX = null;
     this.setY = null;
 
+    this.hoverSelect = null;
+
     //bind functions
     this.changeMouseCoords = this.changeMouseCoords.bind(this);
     this.customRoundX = this.customRoundX.bind(this);
@@ -98,7 +99,6 @@ class App extends React.Component {
   }
 
   writeVFile() {
-    console.log("AAAAAA", this.state.vertices);
     const jsonContent = JSON.stringify([...this.state.vertices]);
     this.dataStr =
       "data:text/json;charset=utf-8," + encodeURIComponent(jsonContent);
@@ -107,8 +107,6 @@ class App extends React.Component {
   uploadVFile(e) {
     this.onClickVert();
     const f = new FileReader();
-    console.log("ZZZZZZZ");
-    console.log(e.target.files);
     f.readAsText(e.target.files[0], "UTF-8");
     f.onload = (e) => {
       const tempArray = e.target.result
@@ -117,20 +115,32 @@ class App extends React.Component {
         .replaceAll('"', "")
         .split(",");
 
-      this.refresh(tempArray);
+      this.refresh(tempArray, true);
     };
   }
 
-  refresh(vert = []) {
+  refresh(vert = [], b = false) {
     const vertices = [];
-    if (vert != []) {
+    if (vert != [] && b) {
       for (let i = 0; i < vert.length; i += 2) {
         let tempVert = [Number(vert[i]), Number(vert[i + 1])];
 
         vertices.push(tempVert);
-
         this.plotVertices(tempVert);
       }
+    } else if (vert != []) {
+      for (let i = 0; i < vert.length; i++) {
+        let tempVert = [Number(vert[i][0]), Number(vert[i][1])];
+
+        vertices.push(tempVert);
+      }
+
+      let selVert = [
+        Number(vert[this.hoverSelect][0]),
+        Number(vert[this.hoverSelect][1]),
+      ];
+
+      this.plotVertices(selVert);
     } else {
       vertices = this.state.vertices;
     }
@@ -267,14 +277,13 @@ class App extends React.Component {
   }
 
   mouseClicked(event) {
-    console.log("ERPGO", event.target.tagName);
     if (event.target.tagName == "svg") {
       this.pushVert(this.state.mouseCoords[0], this.state.mouseCoords[1]);
     } else {
       this.setHoverStateTrue();
       const currMC = [this.state.mouseCoords[0], this.state.mouseCoords[1]];
       this.setState({ hoverStart: currMC });
-      this.setState({ hoverSelect: event.target.id });
+      this.hoverSelect = event.target.id;
 
       if (event.target.tagName == "rect") {
         this.delToolTip();
@@ -306,6 +315,16 @@ class App extends React.Component {
 
     this.setState({ mouseCoords });
 
+    if (this.state.hoverState) {
+      const temp = [...this.state.vertices];
+
+      temp[this.hoverSelect] = [
+        Number(this.customRoundX(mouseCoords[0], this.gridWidth).toFixed(2)),
+        -this.customRoundY(mouseCoords[1], this.gridHeight).toFixed(2),
+      ];
+      this.refresh(temp);
+    }
+
     if (this.state.vertices.length > 0 && this.tooltip.current != null) {
       if (
         cursorpt.x < parseFloat(this.tooltip.current.x) ||
@@ -324,7 +343,6 @@ class App extends React.Component {
 
   plotPolygon() {
     const vertexList = [];
-    console.log(this.state.vertices);
     for (let i = 0; i < this.state.vertices.length; i++) {
       vertexList.push(
         this.vertexPlotConversionX(this.state.vertices[i][0]) +
@@ -336,23 +354,45 @@ class App extends React.Component {
   }
 
   plotVertices(vert) {
-    this.state.planePlotVertices.push(
-      <circle
-        cx={this.vertexPlotConversionX(vert[0])}
-        cy={this.vertexPlotConversionY(vert[1])}
-        r={4}
-        fill="darkslategrey"
-        className={"vertex" + " vertex" + this.state.vertices.length}
-        id={this.state.vertices.length}
-        data={"(" + vert[0] + ", " + vert[1] + ")"}
-        onMouseEnter={this.plotToolTip}
-      />
-    );
-    let planePlotVertices = this.state.planePlotVertices;
+    let planePlotVertices = [];
+    if (this.state.hoverState) {
+      let temp = [...this.state.planePlotVertices];
 
-    this.setState(planePlotVertices);
-    this.setState({ vertices: [...this.state.vertices, vert] });
-    console.log(this.state.planePlotVertices);
+      console.log("XX", temp);
+      console.log(vert);
+      temp[this.hoverSelect] = (
+        <circle
+          cx={this.vertexPlotConversionX(vert[0])}
+          cy={this.vertexPlotConversionY(vert[1])}
+          r={4}
+          fill="darkslategrey"
+          className={"vertex" + " vertex" + this.hoverSelect}
+          id={this.hoverSelect}
+          data={"(" + vert[0] + ", " + vert[1] + ")"}
+          onMouseEnter={this.plotToolTip}
+        />
+      );
+      console.log(temp);
+
+      planePlotVertices = temp;
+      this.setState({ planePlotVertices });
+      // console.log(planePlotVertices);
+    } else {
+      this.state.planePlotVertices.push(
+        <circle
+          cx={this.vertexPlotConversionX(vert[0])}
+          cy={this.vertexPlotConversionY(vert[1])}
+          r={4}
+          fill="darkslategrey"
+          className={"vertex" + " vertex" + this.state.vertices.length}
+          id={this.state.vertices.length}
+          data={"(" + vert[0] + ", " + vert[1] + ")"}
+          onMouseEnter={this.plotToolTip}
+        />
+      );
+      planePlotVertices = this.state.planePlotVertices;
+      this.setState(planePlotVertices);
+    }
   }
 
   getToolTipData(vert) {
@@ -408,6 +448,7 @@ class App extends React.Component {
           onMouseLeave={this.delToolTip}
           ref={this.tooltip}
           className={event.target.className.baseVal.split(" ")[1]}
+          id={event.target.id}
         />
       );
 
@@ -574,10 +615,8 @@ class App extends React.Component {
   }
 
   changeLimit(event) {
-    console.log(event.target.name);
     const tempGrid = this.state.gridSize;
     if (Number.isInteger(Number(event.target.value))) {
-      console.log(tempGrid);
       if (event.target.name == "x1Limit") {
         if (Number(event.target.value) >= 0) {
           tempGrid[0] = 0;
@@ -660,7 +699,6 @@ class App extends React.Component {
   }
 
   submitVertex(event) {
-    console.log("submit " + this.setX + "XX " + this.setY);
     this.pushVert(
       this.vertexPlotConversionX(this.setX),
       this.vertexPlotConversionY(this.setY)
