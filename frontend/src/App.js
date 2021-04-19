@@ -67,6 +67,7 @@ class App extends React.Component {
 
     this.hoverSelect = null;
     this.changeDataID = null;
+    this.changeDataLast = null;
 
     //bind functions
     this.changeMouseCoords = this.changeMouseCoords.bind(this);
@@ -127,17 +128,27 @@ class App extends React.Component {
 
     this.changeDataID = Number(e.target.name.slice(0, -1));
     const data = e.nativeEvent.data;
-    console.log(tempArray[this.changeDataID][0] == 0 && data == "-");
+    console.log(data);
 
-    if (data == "-" || data == null || Number.isInteger(Number(data))) {
+    if (
+      data == "-" ||
+      data == "." ||
+      data == null ||
+      Number.isInteger(Number(data))
+    ) {
       if (e.target.name[e.target.name.length - 1] == "A") {
         if (data != null) {
           if (tempArray[this.changeDataID][0] == 0 && data == "-") {
             tempArray[this.changeDataID][0] = "-";
             console.log(tempArray);
           } else {
-            tempArray[this.changeDataID][0] =
-              String(tempArray[this.changeDataID][0]) + data;
+            if (this.changeDataLast == ".") {
+              tempArray[this.changeDataID][0] =
+                String(tempArray[this.changeDataID][0]) + "." + data;
+            } else {
+              tempArray[this.changeDataID][0] =
+                String(tempArray[this.changeDataID][0]) + data;
+            }
           }
         } else {
           if (String(tempArray[this.changeDataID][0]).length < 1) {
@@ -153,8 +164,13 @@ class App extends React.Component {
           if (tempArray[this.changeDataID][1] == 0 && data == "-") {
             tempArray[this.changeDataID][1] = "-";
           } else {
-            tempArray[this.changeDataID][1] =
-              String(tempArray[this.changeDataID][1]) + data;
+            if (this.changeDataLast == ".") {
+              tempArray[this.changeDataID][1] =
+                String(tempArray[this.changeDataID][1]) + "." + data;
+            } else {
+              tempArray[this.changeDataID][1] =
+                String(tempArray[this.changeDataID][1]) + data;
+            }
           }
         } else {
           if (String(tempArray[this.changeDataID][1]).length < 1) {
@@ -167,6 +183,7 @@ class App extends React.Component {
         }
       }
     }
+    console.log(String(tempArray[this.changeDataID][0]));
 
     this.setState({ vertices: tempArray }, () => {
       if (
@@ -175,6 +192,7 @@ class App extends React.Component {
       ) {
         this.refresh(this.state.vertices);
       }
+      this.changeDataLast = data;
     });
   }
 
