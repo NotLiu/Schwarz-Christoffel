@@ -68,6 +68,7 @@ class App extends React.Component {
     this.hoverSelect = null;
     this.changeDataID = null;
     this.changeDataLast = null;
+    this.changeDataLasttwo = null;
 
     //bind functions
     this.changeMouseCoords = this.changeMouseCoords.bind(this);
@@ -143,8 +144,15 @@ class App extends React.Component {
             console.log(tempArray);
           } else {
             if (this.changeDataLast == ".") {
-              tempArray[this.changeDataID][0] =
-                String(tempArray[this.changeDataID][0]) + "." + data;
+              if (this.changeDataLasttwo == "-") {
+                tempArray[this.changeDataID][0] =
+                  "-" + String(tempArray[this.changeDataID][0]) + "." + data;
+              } else {
+                tempArray[this.changeDataID][0] =
+                  String(tempArray[this.changeDataID][0]) + "." + data;
+              }
+            } else if (this.changeDataLast == "-" && data == ".") {
+              tempArray[this.changeDataID][0] = "-0.";
             } else {
               tempArray[this.changeDataID][0] =
                 String(tempArray[this.changeDataID][0]) + data;
@@ -165,8 +173,13 @@ class App extends React.Component {
             tempArray[this.changeDataID][1] = "-";
           } else {
             if (this.changeDataLast == ".") {
-              tempArray[this.changeDataID][1] =
-                String(tempArray[this.changeDataID][1]) + "." + data;
+              if (this.changeDataLasttwo == "-") {
+                tempArray[this.changeDataID][0] =
+                  "-" + String(tempArray[this.changeDataID][0]) + "." + data;
+              } else {
+                tempArray[this.changeDataID][0] =
+                  String(tempArray[this.changeDataID][0]) + "." + data;
+              }
             } else {
               tempArray[this.changeDataID][1] =
                 String(tempArray[this.changeDataID][1]) + data;
@@ -192,6 +205,7 @@ class App extends React.Component {
       ) {
         this.refresh(this.state.vertices);
       }
+      this.changeDataLasttwo = this.changeDataLast;
       this.changeDataLast = data;
     });
   }
