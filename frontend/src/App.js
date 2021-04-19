@@ -66,6 +66,7 @@ class App extends React.Component {
     this.setY = null;
 
     this.hoverSelect = null;
+    this.changeDataID = null;
 
     //bind functions
     this.changeMouseCoords = this.changeMouseCoords.bind(this);
@@ -86,6 +87,8 @@ class App extends React.Component {
     this.onClickVert = this.onClickVert.bind(this);
     this.setHoverStateTrue = this.setHoverStateTrue.bind(this);
     this.setHoverStateFalse = this.setHoverStateFalse.bind(this);
+
+    this.handleChangeData = this.handleChangeData.bind(this);
 
     //file functions
     this.writeVFile = this.writeVFile.bind(this);
@@ -119,6 +122,62 @@ class App extends React.Component {
     };
   }
 
+  handleChangeData(e) {
+    const tempArray = [...this.state.vertices];
+
+    this.changeDataID = Number(e.target.name.slice(0, -1));
+    const data = e.nativeEvent.data;
+    console.log(tempArray[this.changeDataID][0] == 0 && data == "-");
+
+    if (data == "-" || data == null || Number.isInteger(Number(data))) {
+      if (e.target.name[e.target.name.length - 1] == "A") {
+        if (data != null) {
+          if (tempArray[this.changeDataID][0] == 0 && data == "-") {
+            tempArray[this.changeDataID][0] = "-";
+            console.log(tempArray);
+          } else {
+            tempArray[this.changeDataID][0] =
+              String(tempArray[this.changeDataID][0]) + data;
+          }
+        } else {
+          if (String(tempArray[this.changeDataID][0]).length < 1) {
+            tempArray[this.changeDataID][0] = "0";
+          } else {
+            tempArray[this.changeDataID][0] = String(
+              tempArray[this.changeDataID][0]
+            ).slice(0, -1);
+          }
+        }
+      } else {
+        if (data != null) {
+          if (tempArray[this.changeDataID][1] == 0 && data == "-") {
+            tempArray[this.changeDataID][1] = "-";
+          } else {
+            tempArray[this.changeDataID][1] =
+              String(tempArray[this.changeDataID][1]) + data;
+          }
+        } else {
+          if (String(tempArray[this.changeDataID][1]).length < 1) {
+            tempArray[this.changeDataID][1] = "0";
+          } else {
+            tempArray[this.changeDataID][1] = String(
+              tempArray[this.changeDataID][1]
+            ).slice(0, -1);
+          }
+        }
+      }
+    }
+
+    this.setState({ vertices: tempArray }, () => {
+      if (
+        this.state.vertices[this.changeDataID][0] != "-" &&
+        this.state.vertices[this.changeDataID][1] != "-"
+      ) {
+        this.refresh(this.state.vertices);
+      }
+    });
+  }
+
   refresh(vert = [], b = false) {
     const vertices = [];
     if (vert != [] && b) {
@@ -133,14 +192,26 @@ class App extends React.Component {
         let tempVert = [Number(vert[i][0]), Number(vert[i][1])];
 
         vertices.push(tempVert);
+        if (!this.state.hoverState && this.changeDataID == null) {
+          this.plotVertices(tempVert);
+        }
+      }
+      if (this.changeDataID != null) {
+        let selVert = [
+          Number(vert[this.changeDataID][0]),
+          Number(vert[this.changeDataID][1]),
+        ];
+        this.plotVertices(selVert, true);
       }
 
-      let selVert = [
-        Number(vert[this.hoverSelect][0]),
-        Number(vert[this.hoverSelect][1]),
-      ];
+      if (this.state.hoverState) {
+        let selVert = [
+          Number(vert[this.hoverSelect][0]),
+          Number(vert[this.hoverSelect][1]),
+        ];
 
-      this.plotVertices(selVert);
+        this.plotVertices(selVert, true);
+      }
     } else {
       vertices = this.state.vertices;
     }
@@ -243,7 +314,7 @@ class App extends React.Component {
     this.ttFlag = false;
     let new_vert = [
       Number(this.customRoundX(vx, this.gridWidth).toFixed(2)),
-      -this.customRoundY(vy, this.gridHeight).toFixed(2),
+      Number(-this.customRoundY(vy, this.gridHeight).toFixed(2)),
     ];
     let flag = 0;
 
@@ -320,7 +391,7 @@ class App extends React.Component {
 
       temp[this.hoverSelect] = [
         Number(this.customRoundX(mouseCoords[0], this.gridWidth).toFixed(2)),
-        -this.customRoundY(mouseCoords[1], this.gridHeight).toFixed(2),
+        Number(-this.customRoundY(mouseCoords[1], this.gridHeight).toFixed(2)),
       ];
       this.refresh(temp);
     }
@@ -353,26 +424,38 @@ class App extends React.Component {
     return vertexList.join(" ");
   }
 
-  plotVertices(vert) {
+  plotVertices(vert, changeState = false) {
     let planePlotVertices = [];
-    if (this.state.hoverState) {
+    if (changeState) {
       let temp = [...this.state.planePlotVertices];
 
-      console.log("XX", temp);
-      console.log(vert);
-      temp[this.hoverSelect] = (
-        <circle
-          cx={this.vertexPlotConversionX(vert[0])}
-          cy={this.vertexPlotConversionY(vert[1])}
-          r={4}
-          fill="darkslategrey"
-          className={"vertex" + " vertex" + this.hoverSelect}
-          id={this.hoverSelect}
-          data={"(" + vert[0] + ", " + vert[1] + ")"}
-          onMouseEnter={this.plotToolTip}
-        />
-      );
-      console.log(temp);
+      if (this.state.hoverState) {
+        temp[this.hoverSelect] = (
+          <circle
+            cx={this.vertexPlotConversionX(vert[0])}
+            cy={this.vertexPlotConversionY(vert[1])}
+            r={4}
+            fill="darkslategrey"
+            className={"vertex" + " vertex" + this.hoverSelect}
+            id={this.hoverSelect}
+            data={"(" + vert[0] + ", " + vert[1] + ")"}
+            onMouseEnter={this.plotToolTip}
+          />
+        );
+      } else if (this.changeDataID != null) {
+        temp[this.changeDataID] = (
+          <circle
+            cx={this.vertexPlotConversionX(vert[0])}
+            cy={this.vertexPlotConversionY(vert[1])}
+            r={4}
+            fill="darkslategrey"
+            className={"vertex" + " vertex" + this.hoverSelect}
+            id={this.changeDataID}
+            data={"(" + vert[0] + ", " + vert[1] + ")"}
+            onMouseEnter={this.plotToolTip}
+          />
+        );
+      }
 
       planePlotVertices = temp;
       this.setState({ planePlotVertices });
@@ -730,7 +813,25 @@ class App extends React.Component {
       }
       return (
         <li key={index} className={"vertex" + index + " " + c}>
-          {String.fromCharCode(65 + index)}: ({vertex[0]}, {vertex[1]})
+          <form className="dataForm">
+            {String.fromCharCode(65 + index)}: (
+            <input
+              type="text"
+              value={vertex[0]}
+              className="dataInputLI"
+              name={index + "A"}
+              onChange={this.handleChangeData}
+            ></input>
+            ,
+            <input
+              type="text"
+              value={vertex[1]}
+              className="dataInputLI"
+              name={index + "B"}
+              onChange={this.handleChangeData}
+            ></input>
+            )
+          </form>
         </li>
       );
     });
