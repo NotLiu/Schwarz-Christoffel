@@ -6,9 +6,9 @@ from schwarzchristoffel import SchwarzChristoffel
 
 square = Polygon([
     (0,0),
-    (0,1),
-    (1,1),
-    (1,0)
+    (1,0),
+    (2,1),
+    (0,1)
     ], True)
 
 
@@ -78,7 +78,7 @@ test4 = Polygon([
     (-2,0)
     ], True)
 
-rect = Polygon([
+test5 = Polygon([
     (0, 0),
     (2, 0),
     (2, 1),
@@ -86,13 +86,19 @@ rect = Polygon([
     (0, 1)
 ])
 
-#print(rect)
+print("Let's input some vertices:")
+vertexList = []
+cmd = ''
+while cmd != 'done':
+    cmd = input('input a vertex in clockwise order (e.g. 0,1), otherwise "done":')
+    if cmd == 'done': break
+    else:
+        cmd = cmd.split(',')
+    vertexList.append((int(cmd[0]), int(cmd[1])))
 
-sc = SchwarzChristoffel(square)
+shape = Polygon(vertexList)
+
+print(shape)
+
+sc = SchwarzChristoffel(shape)
 sc.getParameters()
-
-#print(square)
-#print(test)
-#print(test2)
-#print(test3)
-#print(test4)

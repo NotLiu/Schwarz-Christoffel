@@ -52,7 +52,9 @@ class Angle:
             self.angleType = 'int'
         self.line1 = line1
         self.line2 = line2
-        self.angle = None
+        self.angle = self.calcAngle("radians")
+    
+ 
     
     def getVertices(self, line1, line2):
         lines = [line1, line2]
@@ -102,6 +104,7 @@ class Angle:
         
         if self.angleType == 'ext':
             angle = 180 - angle if method == 'degrees' else math.radians(180) - angle
+        self.angle = angle
         return angle
 
     def __getItem__(self):
@@ -119,6 +122,9 @@ class Angle:
             self.angle = self.calcAngle("radians")        
         return f'∠{self.label}: {self.angle}'
     
+    def __repr__(self):
+        return self.angle
+        
 class Polygon:
     def __init__(self, vertices, isComplex=False):
         self.isComplex = isComplex
