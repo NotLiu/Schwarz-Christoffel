@@ -195,3 +195,9 @@ li {
   padding: 3px 5px;
   background-color: darkseagreen;
 }
+.dataInputLI {
+  width: 6em;
+}
+.dataForm {
+  margin-block-end: 0;
+}
