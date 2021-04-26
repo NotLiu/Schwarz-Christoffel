@@ -91,6 +91,7 @@ class App extends React.Component {
     this.setHoverStateFalse = this.setHoverStateFalse.bind(this);
 
     this.handleChangeData = this.handleChangeData.bind(this);
+    this.removeVertex = this.removeVertex.bind(this);
 
     //file functions
     this.writeVFile = this.writeVFile.bind(this);
@@ -822,6 +823,20 @@ class App extends React.Component {
     event.preventDefault();
   }
 
+  removeVertex(event) {
+    const vertices = [...this.state.vertices];
+    vertices.splice(Number(event.target.attributes.vindex.value), 1);
+
+    this.setState({ vertices }, () => {
+      const points = [...this.state.planePlotVertices];
+      points.splice(Number(event.target.attributes.vindex.value), 1);
+
+      this.setState({ planePlotVertices: [] }, () => {
+        this.refresh(this.state.vertices);
+      });
+    });
+  }
+
   componentDidMount() {
     // this.myP5 = new p5(this.Sketch, this.myRef.current);
     //write axios as promise to ensure data from server before continuing
@@ -863,6 +878,13 @@ class App extends React.Component {
               onChange={this.handleChangeData}
             ></input>
             )
+            <button
+              type="button"
+              className="btn-close"
+              aria-label="Close"
+              onClick={this.removeVertex}
+              vindex={index}
+            ></button>
           </form>
         </li>
       );

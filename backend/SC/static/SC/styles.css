@@ -74,6 +74,7 @@ body {
 .dataList {
   overflow-y: scroll;
   height: 95px;
+  padding-left: 0;
 }
 ul {
   padding: 0 0 0 0;
@@ -123,6 +124,7 @@ li {
   padding: 12px 6px;
   cursor: pointer;
   color: #bbb;
+  height: 2em;
 }
 
 .react-tabs__tab--selected {
@@ -196,7 +198,7 @@ li {
   background-color: darkseagreen;
 }
 .dataInputLI {
-  width: 6em;
+  width: 5em;
 }
 .dataForm {
   margin-block-end: 0;
