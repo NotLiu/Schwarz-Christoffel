@@ -1,7 +1,8 @@
 import debugpy
 import numpy as np
 import copy
-
+import matplotlib
+import matplotlib.pyplot as plt
 from numpy.linalg import LinAlgError
 from scipy import special
 from scipy.optimize import newton
@@ -20,11 +21,10 @@ class SchwarzChristoffel:
       self.β[b] = self.β[b-1]
     self.β[0] = head
 
-    #Question regarding inconsistencies within the paper; taking all sides for a paper assuming the polygon isnt closed?
     self.λ = [polygon.lines[i].length / polygon.lines[0].length for i in range(1, len(polygon.lines))]
     self.F = self.setF()
-    print(sum(self.β))
-    print(f"β: {self.β}\nλ: {self.λ}")
+    #print(sum(self.β))
+    #print(f"β: {self.β}\nλ: {self.λ}")
 
   def approximateRealMapping(self):
     A = [-1, 1]
@@ -44,7 +44,6 @@ class SchwarzChristoffel:
     return F
   
   def gaussJacobiQuad(self, func, α, β, n=10):
-    debugpy.breakpoint()
     result = special.j_roots(n, α, β)
     points, weights = result[0], result[1]
     return sum([weights[m]*func(points[m]) for m in range(n)])
@@ -57,16 +56,15 @@ class SchwarzChristoffel:
 
   def calcSingleI(self, A, ISub):
     terms = []
-    
-    staticTerm = ((A[ISub + 1] - A[ISub]) / 2) ** (1 - self.β[ISub] - self.β[ISub + 1])
+    staticTerm = ( pow( (A[ISub + 1] - A[ISub]) / 2 , (1 - self.β[ISub] - self.β[ISub + 1]) ) )
     def conditionalTerm(termNum, ISub):
       #print(f"isub: {ISub} b_isub+1: {self.β[ISub+1]}, b_isub: {self.β[ISub]}")
       def innerTerm(x):
-        t1 = x * ((A[ISub+1] - A[ISub]) / 2)
+        t1 = x * ((A[ISub+1] - A[ISub]) / 2) 
         t2 = ((A[ISub+1] + A[ISub]) / 2)
         t3 = A[termNum]
         exp = self.β[termNum]
-        return 1 / (abs(t1 + t2 - t3) ** exp)
+        return 1 / ( pow(abs(t1 + t2 - t3), exp) )
       return innerTerm
         
     for termNum in range(len(A)):
@@ -79,10 +77,10 @@ class SchwarzChristoffel:
 
   def calcSingleIAux(self, A, staticTerm, terms, α, β):
     def innerIntegralFunc(x, termIndex=0):
-        #print(f"termIndex={termIndex}, term = {terms[termIndex](x)}")
-        if termIndex == len(terms) - 1:
-            return staticTerm * terms[termIndex](x)
-        return terms[termIndex](x) * innerIntegralFunc(x, termIndex + 1)
+      #print(f"termIndex={termIndex}, term = {terms[termIndex](x)}")
+      if termIndex == len(terms) - 1:
+          return staticTerm * terms[termIndex](x)
+      return terms[termIndex](x) * innerIntegralFunc(x, termIndex + 1)
     return self.gaussJacobiQuad(innerIntegralFunc, α, β)
 
   def generateJacobiMatrix(self, A, I):
@@ -105,19 +103,8 @@ class SchwarzChristoffel:
     #print(f"derMat: \n{derivativeMatrix}\n\nderCol:\n{derivativeColumn}\n\nλ:\n{λ}\n")
     J = np.subtract( derivativeMatrix, np.dot(derivativeColumn, λ) )
     return J
-  
-  def getInverseMatrix(self, matrix): 
-    inv = matrix
-    try:
-      inv = np.linalg.inv(matrix)
-    except LinAlgError as e:
-      if str(e) == "Singular matrix":
-        inv = matrix
-      else:
-        raise e
-    return inv
 
-  def calcSLFirstDerivative(self, A, δISub, δaSub, h=0.01):
+  def calcSLFirstDerivative(self, A, δISub, δaSub, h=0.001):
     terms = []
     termModifiers = [-2 * h, -h, h, 2 * h]
     for termIndex in range(4):
@@ -129,23 +116,24 @@ class SchwarzChristoffel:
     SLFirstDerivative = sum([t1, t2, t3, t4]) / (12 * h)
     return SLFirstDerivative
 
-  def paramsValidated(self, A, APrev, acceptableError = 10 ** -5):
+  def paramsValidated(self, A, APrev, acceptableError=10 ** -6):
+    hits = 0
     if A is None or APrev is None: return False
     for k in range(len(A)):
-      if abs(A[k] - APrev[k]) > acceptableError: return False
+      if abs(A[k] - APrev[k]) < acceptableError:
+        hits += 1
+    #print(f'Hits: {hits}')
+    if hits < len(A): return False
     return True
   
   def getParameters(self):
     A = self.A
     APrev = None
 
-    # I = self.calcIntegrals(self.A)
-    # F = [func(I) for func in self.F]
-    # J = self.generateJacobiMatrix(self.A, I)
-    # invJ = self.getInverseMatrix(J)
+    As = []    
+    I_ratios = []
 
-    # print(f"I vals for {self.A}:\n\t{I}")
-    # print(f"J:\n{J}\ninvJ:\n{invJ}")
+    iter_counter = 0
 
     while not self.paramsValidated(A, APrev):
       debugpy.breakpoint()
@@ -153,22 +141,44 @@ class SchwarzChristoffel:
       I = self.calcIntegrals(A)
       F = [func(I) for func in self.F]
       J = self.generateJacobiMatrix(A, I)
-      invJ = self.getInverseMatrix(J)
-      
+      print(J)
+      print(f'det: {np.linalg.det(J)}')
+      invJ = np.linalg.inv(J)
+      print(invJ)
+
+      print(J*invJ, invJ*J)
+
       AVect = np.matrix(A[2:]).T
       F = np.matrix(F).T
       rightTerm = invJ * F
-      AVect = AVect - rightTerm
-      Avect = AVect.T
+      AVect = AVect - 0.01*rightTerm
 
       A = self.A[:2]
-      for aSub in range(len(AVect)):
-        A.append(Avect.item(aSub))
       
-    print(A)
-    print(I)
+      for aSub in range(len(AVect)):
+        A.append(AVect.item(aSub))
 
+      iter_counter += 1
+      As.append(A)
 
-      # print(f"I vals for {self.A}:\n\t{I}")
-      # print(f"J:\n{J}\ninvJ:\n{invJ}")
+      print(f'lambda: {self.λ}')
+      print(f'a: {A}')
+      I_ratio = []
+      for i in range(1, self.N - 1):
+        I_ratio.append(I[i] / I[0])
+        print(f'I_{i} ratio: {I[i] / I[0]}')
+      
+      I_ratios.append(I_ratio)
+      if iter_counter > 100:
+        break
+
+    t = np.arange(0, iter_counter, 1)
+    fig, ax = plt.subplots()
+    ax.plot(t, I_ratios)
+    ax.set(xlabel='iterations', ylabel='Iratios')
+    ax.grid()
+    plt.show()
+
+    #print(f'λ:\n{self.λ} \nI_ratios:\n{I_ratios}')
+    return iter_counter, I_ratios, As
 
