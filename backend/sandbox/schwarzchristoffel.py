@@ -20,6 +20,7 @@ class SchwarzChristoffel:
     for b in range(len(self.β)-1, 0, -1):
       self.β[b] = self.β[b-1]
     self.β[0] = head
+    print(self.β)
 
     self.λ = [polygon.lines[i].length / polygon.lines[0].length for i in range(1, len(polygon.lines))]
     self.F = self.setF()
@@ -43,8 +44,8 @@ class SchwarzChristoffel:
       F.append(f(i))
     return F
   
-  def gaussJacobiQuad(self, func, α, β, n=10):
-    result = special.j_roots(n, α, β)
+  def gaussJacobiQuad(self, func, α, β1, n=10):
+    result = special.j_roots(n, α, β1)
     points, weights = result[0], result[1]
     return sum([weights[m]*func(points[m]) for m in range(n)])
 
@@ -56,7 +57,8 @@ class SchwarzChristoffel:
 
   def calcSingleI(self, A, ISub):
     terms = []
-    staticTerm = ( pow( (A[ISub + 1] - A[ISub]) / 2 , (1 - self.β[ISub] - self.β[ISub + 1]) ) )
+    staticTermExponent = 1 - self.β[ISub] - self.β[ISub + 1]
+    staticTerm = ( pow( (A[ISub + 1] - A[ISub]) / 2 , staticTermExponent ) )
     def conditionalTerm(termNum, ISub):
       #print(f"isub: {ISub} b_isub+1: {self.β[ISub+1]}, b_isub: {self.β[ISub]}")
       def innerTerm(x):
@@ -72,16 +74,17 @@ class SchwarzChristoffel:
           terms.append(conditionalTerm(termNum, ISub))
 
     α = -self.β[ISub + 1]
-    β = -self.β[ISub]
-    return self.calcSingleIAux(A, staticTerm, terms, α, β)
+    β1 = -self.β[ISub]
+    return self.calcSingleIAux(A, staticTerm, terms, α, β1)
 
-  def calcSingleIAux(self, A, staticTerm, terms, α, β):
+  def calcSingleIAux(self, A, staticTerm, terms, α, β1):
     def innerIntegralFunc(x, termIndex=0):
       #print(f"termIndex={termIndex}, term = {terms[termIndex](x)}")
       if termIndex == len(terms) - 1:
-          return staticTerm * terms[termIndex](x)
-      return terms[termIndex](x) * innerIntegralFunc(x, termIndex + 1)
-    return self.gaussJacobiQuad(innerIntegralFunc, α, β)
+          return terms[termIndex](x)
+      result = terms[termIndex](x) * innerIntegralFunc(x, termIndex + 1)
+      return staticTerm * result
+    return self.gaussJacobiQuad(innerIntegralFunc, α, β1)
 
   def generateJacobiMatrix(self, A, I):
     derivativeMatrix = []
@@ -96,12 +99,15 @@ class SchwarzChristoffel:
       derivativeColumn.append(self.calcSLFirstDerivative(A, 0, δaSub))
 
     #create numpy objects
+    debugpy.breakpoint()
     derivativeMatrix = np.matrix(derivativeMatrix)
     derivativeColumn = np.matrix(derivativeColumn)
-    λ = np.reshape(np.matrix(self.λ[:-1]), (len(self.λ) - 1, 1))
+    λ = np.matrix(self.λ[:-1]).T
     
     #print(f"derMat: \n{derivativeMatrix}\n\nderCol:\n{derivativeColumn}\n\nλ:\n{λ}\n")
-    J = np.subtract( derivativeMatrix, np.dot(derivativeColumn, λ) )
+    print(self.λ)
+    rightTerm = λ*derivativeColumn
+    J = derivativeMatrix - rightTerm
     return J
 
   def calcSLFirstDerivative(self, A, δISub, δaSub, h=0.001):
@@ -116,7 +122,7 @@ class SchwarzChristoffel:
     SLFirstDerivative = sum([t1, t2, t3, t4]) / (12 * h)
     return SLFirstDerivative
 
-  def paramsValidated(self, A, APrev, acceptableError=10 ** -6):
+  def paramsValidated(self, A, APrev, acceptableError=10 ** -5):
     hits = 0
     if A is None or APrev is None: return False
     for k in range(len(A)):
@@ -136,22 +142,21 @@ class SchwarzChristoffel:
     iter_counter = 0
 
     while not self.paramsValidated(A, APrev):
-      debugpy.breakpoint()
       APrev = A.copy()
       I = self.calcIntegrals(A)
       F = [func(I) for func in self.F]
       J = self.generateJacobiMatrix(A, I)
-      print(J)
-      print(f'det: {np.linalg.det(J)}')
+      #print(J)
+      #print(f'det: {np.linalg.det(J)}')
       invJ = np.linalg.inv(J)
-      print(invJ)
+      #print(invJ)
 
-      print(J*invJ, invJ*J)
+      #print(J*invJ, invJ*J)
 
       AVect = np.matrix(A[2:]).T
       F = np.matrix(F).T
       rightTerm = invJ * F
-      AVect = AVect - 0.01*rightTerm
+      AVect = AVect - rightTerm
 
       A = self.A[:2]
       
@@ -169,7 +174,7 @@ class SchwarzChristoffel:
         print(f'I_{i} ratio: {I[i] / I[0]}')
       
       I_ratios.append(I_ratio)
-      if iter_counter > 100:
+      if iter_counter > 1000:
         break
 
     t = np.arange(0, iter_counter, 1)
