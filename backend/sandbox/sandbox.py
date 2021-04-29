@@ -6,34 +6,6 @@ import matplotlib.pyplot as plt
 from polygon import Polygon
 from schwarzchristoffel import SchwarzChristoffel
 
-
-# letters = ["a", "b", "c", "d"]
-
-# printLetterNTimes = lambda letter: lambda n: letter * n
-# letterTerms = []
-# for letter in letters:
-#   letterTerms.append(printLetterNTimes(letter))
-
-
-# def innerLetterIterator(n, letterIndex=0):
-#   if letterIndex == len(letterTerms) - 1:
-#     return letterTerms[letterIndex](n)
-#   return letterTerms[letterIndex](n) + innerLetterIterator(n, letterIndex + 1)
-
-# print(innerLetterIterator(10))
-
-
-
-
-
-
-
-
-
-
-
-
-
 class SCTest:
   def __init__(self, testRange):
     fourSides = None
@@ -73,8 +45,6 @@ square = Polygon([
     (2,1),
     (0,1)
     ], True)
-
-
 
 test = Polygon([
     (0,0),
@@ -176,24 +146,17 @@ test9 = Polygon([
   (3, 1),
   (3, 2),
   (2, 2),
-  (1, 1),
-  (0.5, 1),
+  (0.6, 1),
 ])
-sc = SchwarzChristoffel(test9)
+
+test10 = Polygon([
+  (0, 0),
+  (1, 0),
+  (2, 1),
+  (-1, 1)
+])
+
+sc = SchwarzChristoffel(test10)
+print(sc.A)
 sc.getParameters()
-
-# scTest = SCTest(100)
-# print("Let's input some vertices:")
-# vertexList = []
-# cmd = ''
-# while cmd != 'done':
-#     cmd = input('input a vertex in counter-clockwise order (e.g. 0,1), otherwise "done":')
-#     if cmd == 'done': break
-#     else:
-#         cmd = cmd.split(',')
-#     vertexList.append((float(cmd[0]), float(cmd[1])))
-
-# shape = Polygon(vertexList)
-
-# sc = SchwarzChristoffel(shape)
-# sc.getParameters()
+print(sc.A)
