@@ -89,6 +89,7 @@ class App extends React.Component {
     this.onClickVert = this.onClickVert.bind(this);
     this.setHoverStateTrue = this.setHoverStateTrue.bind(this);
     this.setHoverStateFalse = this.setHoverStateFalse.bind(this);
+    this.plotPolygonLines = this.plotPolygonLines.bind(this);
 
     this.handleChangeData = this.handleChangeData.bind(this);
     this.removeVertex = this.removeVertex.bind(this);
@@ -455,6 +456,42 @@ class App extends React.Component {
       );
     }
     return vertexList.join(" ");
+  }
+
+  plotPolygonLines() {
+    if (this.state.vertices.length > 2) {
+      const lineList = [];
+      console.log(this.state.vertices);
+      for (let i = 0; i < this.state.vertices.length - 1; i++) {
+        lineList.push(
+          <line
+            x1={this.vertexPlotConversionX(this.state.vertices[i][0])}
+            y1={this.vertexPlotConversionY(this.state.vertices[i][1])}
+            x2={this.vertexPlotConversionX(this.state.vertices[i + 1][0])}
+            y2={this.vertexPlotConversionY(this.state.vertices[i + 1][1])}
+            fill="darkseagreen"
+            stroke="darkslategrey"
+            strokeWidth="2"
+          />
+        );
+      }
+      lineList.push(
+        <line
+          x1={this.vertexPlotConversionX(
+            this.state.vertices[this.state.vertices.length - 1][0]
+          )}
+          y1={this.vertexPlotConversionY(
+            this.state.vertices[this.state.vertices.length - 1][1]
+          )}
+          x2={this.vertexPlotConversionX(this.state.vertices[0][0])}
+          y2={this.vertexPlotConversionY(this.state.vertices[0][1])}
+          fill="darkseagreen"
+          stroke="darkslategrey"
+          strokeWidth="2"
+        />
+      );
+      return lineList;
+    }
   }
 
   plotVertices(vert, changeState = false) {
@@ -1062,6 +1099,7 @@ class App extends React.Component {
                       strokeWidth="2"
                       fillRule="nonzero"
                     />
+                    {this.plotPolygonLines()}
                   </g>
                   <g>{this.state.planePlotVertices}</g>
                   <text
