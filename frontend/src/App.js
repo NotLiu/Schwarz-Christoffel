@@ -478,6 +478,7 @@ class App extends React.Component {
             id={"l" + String(i)}
             className="polygonLine"
             onMouseEnter={this.hoverLine}
+            onMouseMove={this.hoverLine}
             onMouseLeave={this.stopHoverLine}
           />
         );
@@ -498,6 +499,7 @@ class App extends React.Component {
           id={"l" + String(this.state.vertices.length)}
           className="polygonLine"
           onMouseEnter={this.hoverLine}
+          onMouseMove={this.hoverLine}
           onMouseLeave={this.stopHoverLine}
         />
       );
@@ -521,6 +523,7 @@ class App extends React.Component {
           this.state.mouseCoords[1] +
           ")"
         }
+        pointerEvents="none"
       />
     );
     this.tempCircle = tempCircle;
