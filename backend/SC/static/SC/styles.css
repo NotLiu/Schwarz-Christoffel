@@ -204,3 +204,8 @@ li {
 .dataForm {
   margin-block-end: 0;
 }
+
+.polygonLine:hover {
+  stroke-width: 5px;
+  stroke: rgb(207, 72, 112);
+}

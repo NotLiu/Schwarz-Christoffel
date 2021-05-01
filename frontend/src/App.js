@@ -52,8 +52,10 @@ class App extends React.Component {
       (Math.abs(this.state.gridSize[3]) /
         (Math.abs(this.state.gridSize[3]) + Math.abs(this.state.gridSize[2])));
 
-    //if they min and max coordinates are same sign, fix starting coord
-    this.startGridV = this.state.gridSize[0];
+    this.hoveredPolyLine = null;
+    (this.tempCircle = null),
+      //if they min and max coordinates are same sign, fix starting coord
+      (this.startGridV = this.state.gridSize[0]);
     this.startGridX = this.state.gridSize[2];
 
     this.endGridV = this.state.gridSize[1];
@@ -89,10 +91,12 @@ class App extends React.Component {
     this.onClickVert = this.onClickVert.bind(this);
     this.setHoverStateTrue = this.setHoverStateTrue.bind(this);
     this.setHoverStateFalse = this.setHoverStateFalse.bind(this);
-    this.plotPolygonLines = this.plotPolygonLines.bind(this);
 
+    this.plotPolygonLines = this.plotPolygonLines.bind(this);
     this.handleChangeData = this.handleChangeData.bind(this);
     this.removeVertex = this.removeVertex.bind(this);
+    this.hoverLine = this.hoverLine.bind(this);
+    this.stopHoverLine = this.stopHoverLine.bind(this);
 
     //file functions
     this.writeVFile = this.writeVFile.bind(this);
@@ -131,7 +135,6 @@ class App extends React.Component {
 
     this.changeDataID = Number(e.target.name.slice(0, -1));
     const data = e.nativeEvent.data;
-    console.log(data);
 
     if (
       data == "-" ||
@@ -143,7 +146,6 @@ class App extends React.Component {
         if (data != null) {
           if (tempArray[this.changeDataID][0] == 0 && data == "-") {
             tempArray[this.changeDataID][0] = "-";
-            console.log(tempArray);
           } else {
             if (this.changeDataLast == ".") {
               if (this.changeDataLasttwo == "-") {
@@ -198,7 +200,6 @@ class App extends React.Component {
         }
       }
     }
-    console.log(String(tempArray[this.changeDataID][0]));
 
     this.setState({ vertices: tempArray }, () => {
       if (
@@ -461,7 +462,9 @@ class App extends React.Component {
   plotPolygonLines() {
     if (this.state.vertices.length > 2) {
       const lineList = [];
-      console.log(this.state.vertices);
+      let fillColor = "darkseagreen";
+      let strokeSize = "2";
+
       for (let i = 0; i < this.state.vertices.length - 1; i++) {
         lineList.push(
           <line
@@ -469,9 +472,13 @@ class App extends React.Component {
             y1={this.vertexPlotConversionY(this.state.vertices[i][1])}
             x2={this.vertexPlotConversionX(this.state.vertices[i + 1][0])}
             y2={this.vertexPlotConversionY(this.state.vertices[i + 1][1])}
-            fill="darkseagreen"
+            fill={fillColor}
             stroke="darkslategrey"
-            strokeWidth="2"
+            strokeWidth={strokeSize}
+            id={"l" + String(i)}
+            className="polygonLine"
+            onMouseEnter={this.hoverLine}
+            onMouseLeave={this.stopHoverLine}
           />
         );
       }
@@ -485,13 +492,45 @@ class App extends React.Component {
           )}
           x2={this.vertexPlotConversionX(this.state.vertices[0][0])}
           y2={this.vertexPlotConversionY(this.state.vertices[0][1])}
-          fill="darkseagreen"
+          fill={fillColor}
           stroke="darkslategrey"
-          strokeWidth="2"
+          strokeWidth={strokeSize}
+          id={"l" + String(this.state.vertices.length)}
+          className="polygonLine"
+          onMouseEnter={this.hoverLine}
+          onMouseLeave={this.stopHoverLine}
         />
       );
       return lineList;
     }
+  }
+
+  hoverLine(e) {
+    this.hoveredPolyLine = e.target.id;
+    const tempCircle = (
+      <circle
+        cx={this.state.mouseCoords[0]}
+        cy={this.state.mouseCoords[1]}
+        r={5}
+        fill="red"
+        id="tempCircle"
+        data={
+          "(" +
+          this.state.mouseCoords[0] +
+          ", " +
+          this.state.mouseCoords[1] +
+          ")"
+        }
+      />
+    );
+    this.tempCircle = tempCircle;
+    console.log(this.tempCircle);
+    console.log(e);
+  }
+
+  stopHoverLine() {
+    this.hoveredPolyLine = null;
+    this.tempCircle = null;
   }
 
   plotVertices(vert, changeState = false) {
@@ -1100,6 +1139,7 @@ class App extends React.Component {
                       fillRule="nonzero"
                     />
                     {this.plotPolygonLines()}
+                    {this.tempCircle}
                   </g>
                   <g>{this.state.planePlotVertices}</g>
                   <text
