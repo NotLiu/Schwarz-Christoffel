@@ -1313,22 +1313,23 @@ class App extends React.Component {
                 <form className="setForm" onSubmit={this.submitVertex}>
                   <label>Input Vertex</label>
                   <br></br>
-                  <label>X</label>
-                  <br />
+                  <label className="vertexLabel">X</label>
                   <input
                     type="text"
                     name="X"
+                    style={{ width: "6em" }}
                     // value={this.canvasWidth}
                     onChange={(event) => {
                       this.setX = event.target.value;
                     }}
                   />
                   <br />
-                  <label>Y</label>
-                  <br />
+                  <label className="vertexLabel">Y</label>
                   <input
                     type="text"
                     name="Y"
+                    style={{ width: "6em" }}
+                    className="inputVertText"
                     // value={this.canvasHeight}
                     onChange={(event) => {
                       this.setY = event.target.value;
