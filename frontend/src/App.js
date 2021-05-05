@@ -52,8 +52,10 @@ class App extends React.Component {
       (Math.abs(this.state.gridSize[3]) /
         (Math.abs(this.state.gridSize[3]) + Math.abs(this.state.gridSize[2])));
 
-    //if they min and max coordinates are same sign, fix starting coord
-    this.startGridV = this.state.gridSize[0];
+    this.hoveredPolyLine = null;
+    (this.tempCircle = null),
+      //if they min and max coordinates are same sign, fix starting coord
+      (this.startGridV = this.state.gridSize[0]);
     this.startGridX = this.state.gridSize[2];
 
     this.endGridV = this.state.gridSize[1];
@@ -90,8 +92,12 @@ class App extends React.Component {
     this.setHoverStateTrue = this.setHoverStateTrue.bind(this);
     this.setHoverStateFalse = this.setHoverStateFalse.bind(this);
 
+    this.plotPolygonLines = this.plotPolygonLines.bind(this);
     this.handleChangeData = this.handleChangeData.bind(this);
     this.removeVertex = this.removeVertex.bind(this);
+    this.hoverLine = this.hoverLine.bind(this);
+    this.stopHoverLine = this.stopHoverLine.bind(this);
+    this.insertOnLine = this.insertOnLine.bind(this);
 
     //file functions
     this.writeVFile = this.writeVFile.bind(this);
@@ -126,11 +132,11 @@ class App extends React.Component {
   }
 
   handleChangeData(e) {
+    //hover
     const tempArray = [...this.state.vertices];
 
     this.changeDataID = Number(e.target.name.slice(0, -1));
     const data = e.nativeEvent.data;
-    console.log(data);
 
     if (
       data == "-" ||
@@ -142,7 +148,6 @@ class App extends React.Component {
         if (data != null) {
           if (tempArray[this.changeDataID][0] == 0 && data == "-") {
             tempArray[this.changeDataID][0] = "-";
-            console.log(tempArray);
           } else {
             if (this.changeDataLast == ".") {
               if (this.changeDataLasttwo == "-") {
@@ -197,7 +202,6 @@ class App extends React.Component {
         }
       }
     }
-    console.log(String(tempArray[this.changeDataID][0]));
 
     this.setState({ vertices: tempArray }, () => {
       if (
@@ -457,6 +461,131 @@ class App extends React.Component {
     return vertexList.join(" ");
   }
 
+  plotPolygonLines() {
+    if (this.state.vertices.length > 2) {
+      const lineList = [];
+      let fillColor = "darkseagreen";
+      let strokeSize = "2";
+
+      for (let i = 0; i < this.state.vertices.length - 1; i++) {
+        lineList.push(
+          <line
+            x1={this.vertexPlotConversionX(this.state.vertices[i][0])}
+            y1={this.vertexPlotConversionY(this.state.vertices[i][1])}
+            x2={this.vertexPlotConversionX(this.state.vertices[i + 1][0])}
+            y2={this.vertexPlotConversionY(this.state.vertices[i + 1][1])}
+            fill={fillColor}
+            stroke="darkslategrey"
+            strokeWidth={strokeSize}
+            id={"l" + String(i)}
+            className="polygonLine"
+            onMouseEnter={this.hoverLine}
+            onMouseMove={this.hoverLine}
+            onMouseLeave={this.stopHoverLine}
+            onClick={this.insertOnLine}
+          />
+        );
+      }
+      lineList.push(
+        <line
+          x1={this.vertexPlotConversionX(
+            this.state.vertices[this.state.vertices.length - 1][0]
+          )}
+          y1={this.vertexPlotConversionY(
+            this.state.vertices[this.state.vertices.length - 1][1]
+          )}
+          x2={this.vertexPlotConversionX(this.state.vertices[0][0])}
+          y2={this.vertexPlotConversionY(this.state.vertices[0][1])}
+          fill={fillColor}
+          stroke="darkslategrey"
+          strokeWidth={strokeSize}
+          id={"l" + String(this.state.planePlotVertices.length - 1)}
+          className="polygonLine"
+          onMouseEnter={this.hoverLine}
+          onMouseMove={this.hoverLine}
+          onMouseLeave={this.stopHoverLine}
+          onClick={this.insertOnLine}
+        />
+      );
+      return lineList;
+    }
+  }
+
+  hoverLine(e) {
+    this.hoveredPolyLine = e.target.id;
+    const tempCircle = (
+      <circle
+        cx={this.state.mouseCoords[0]}
+        cy={this.state.mouseCoords[1]}
+        r={5}
+        fill="red"
+        id="tempCircle"
+        data={
+          "(" +
+          this.state.mouseCoords[0] +
+          ", " +
+          this.state.mouseCoords[1] +
+          ")"
+        }
+        pointerEvents="none"
+      />
+    );
+    this.tempCircle = tempCircle;
+  }
+
+  stopHoverLine() {
+    this.hoveredPolyLine = null;
+    this.tempCircle = null;
+  }
+
+  insertOnLine() {
+    const lineNum = Number(this.hoveredPolyLine.slice(1));
+    let x1 = 0;
+    let x2 = 0;
+    let y1 = 0;
+    let y2 = 0;
+
+    if (lineNum != this.state.vertices.length - 1) {
+      x1 = this.vertexPlotConversionX(this.state.vertices[lineNum][0]);
+      x2 = this.vertexPlotConversionX(this.state.vertices[lineNum + 1][0]);
+      y1 = this.vertexPlotConversionY(this.state.vertices[lineNum][1]);
+      y2 = this.vertexPlotConversionY(this.state.vertices[lineNum + 1][1]);
+    } else {
+      x1 = this.vertexPlotConversionX(
+        this.state.vertices[this.state.vertices.length - 1][0]
+      );
+      x2 = this.vertexPlotConversionX(this.state.vertices[0][0]);
+      y1 = this.vertexPlotConversionY(
+        this.state.vertices[this.state.vertices.length - 1][1]
+      );
+      y2 = this.vertexPlotConversionY(this.state.vertices[0][1]);
+    }
+
+    const slope = (y2 - y1) / (x2 - x1);
+    const deltay = this.state.mouseCoords[1] - y1;
+    const deltax = deltay / slope;
+
+    const currX = deltax + x1;
+
+    const newVert = [
+      Number(this.customRoundX(currX, this.gridWidth).toFixed(2)),
+      Number(
+        -this.customRoundY(this.state.mouseCoords[1], this.gridHeight).toFixed(
+          2
+        )
+      ),
+    ];
+
+    const vertices = [...this.state.vertices];
+
+    vertices.splice(lineNum + 1, 0, newVert);
+
+    this.setState({ planePlotVertices: [] });
+    this.setState({ vertices }, () => {
+      this.refresh(this.state.vertices);
+    });
+  }
+
   plotVertices(vert, changeState = false) {
     let planePlotVertices = [];
     if (changeState) {
@@ -501,7 +630,7 @@ class App extends React.Component {
           r={4}
           fill="darkslategrey"
           className={"vertex" + " vertex" + this.state.vertices.length}
-          id={this.state.vertices.length}
+          id={this.state.planePlotVertices.length}
           data={"(" + vert[0] + ", " + vert[1] + ")"}
           onMouseEnter={this.plotToolTip}
         />
@@ -1062,6 +1191,8 @@ class App extends React.Component {
                       strokeWidth="2"
                       fillRule="nonzero"
                     />
+                    {this.plotPolygonLines()}
+                    {this.tempCircle}
                   </g>
                   <g>{this.state.planePlotVertices}</g>
                   <text
@@ -1182,22 +1313,23 @@ class App extends React.Component {
                 <form className="setForm" onSubmit={this.submitVertex}>
                   <label>Input Vertex</label>
                   <br></br>
-                  <label>X</label>
-                  <br />
+                  <label className="vertexLabel">X</label>
                   <input
                     type="text"
                     name="X"
+                    style={{ width: "6em" }}
                     // value={this.canvasWidth}
                     onChange={(event) => {
                       this.setX = event.target.value;
                     }}
                   />
                   <br />
-                  <label>Y</label>
-                  <br />
+                  <label className="vertexLabel">Y</label>
                   <input
                     type="text"
                     name="Y"
+                    style={{ width: "6em" }}
+                    className="inputVertText"
                     // value={this.canvasHeight}
                     onChange={(event) => {
                       this.setY = event.target.value;
