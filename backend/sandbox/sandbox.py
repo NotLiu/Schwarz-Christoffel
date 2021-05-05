@@ -141,7 +141,7 @@ test8 = Polygon([
   (-1, -1)
 ])
 
-test9 = Polygon([
+test9 = [
   (0.6, 1),
   (0, 0),
   (1, 0),
@@ -149,15 +149,15 @@ test9 = Polygon([
   (3, 1),
   (3, 2),
   (2, 2),
-])
+]
 
-test10 = Polygon([
+test10 =[
   (0, 0),
   (1, 0),
   (2, 1),
   (-1, 1)
-])
+]
 
-sc = SchwarzChristoffel(test10)
-sc.getAccessoryParams()
-#sc.getParameters()
+sc = SchwarzChristoffel(test9)
+sc.getParameters()
+sc.calcC1()

@@ -1,7 +1,7 @@
 import math
 
 class Vertex:
-    def __init__(self, label, coords, isComplex=False):
+    def __init__(self, label, coords, isComplex=True):
         self.label = label
         self.x = coords[0]
         self.y = coords[1]
@@ -126,7 +126,7 @@ class Angle:
         return self.angle
         
 class Polygon:
-    def __init__(self, vertices, isComplex=False):
+    def __init__(self, vertices, isComplex=True):
         self.isComplex = isComplex
         self.vertices = self.getVertices(vertices)
         self.lines = self.getLines()

@@ -15,50 +15,16 @@ import matplotlib
 import matplotlib.pyplot as plt
 from polygon import Polygon
 from numpy.linalg import LinAlgError
-import scipy.linalg
 from scipy import special
-import scipy.integrate as integrate
 from scipy.optimize import newton
 
-class SchwarzChristoffel: 
-  def __init__(self, vertices):
-    self.polygon = Polygon(vertices)
-    self.A = None
-    self.β = None
-    self.aMappedPolys = self.polygon.vertices
+class SchwarzChristoffel:
+  def __init__(self, polygon):
+    self.polygon = polygon
+    self.N = len(polygon.vertices)
+    self.aMappedPolys = polygon.vertices
     self.c1 = 1
     self.c2 = 0
-
-  def getParameters(self):
-    attempts = 0
-    vertices = [(vertex.x, vertex.y) for vertex in self.polygon.vertices]
-
-    while True:
-      print(vertices)
-      polygon = Polygon(vertices)
-      try:
-        sc_accessories = SchwarzChristoffelAccessories(polygon)
-        sc_accessories = sc_accessories.getParameters()
-
-        for a in sc_accessories:
-          print(a)
-          if type(a) == complex:
-            raise Exception
-        
-        break
-      except Exception as e:
-        print(e)
-        head = vertices[-1]
-        for v in range(len(vertices) - 1, 0, -1):
-          vertices[v] = vertices[v - 1]
-        vertices[0] = head
-        attempts += 1
-      if attempts >= len(vertices):
-        print("Solution not found...")
-        return
-
-    self.A = sc_accessories
-    self.polygon = polygon
     self.β = [float(polygon.extAngles[i]) / np.pi for i in range(len(polygon.extAngles))]
 
     # Rotating betas counter-clockwise by one
@@ -66,65 +32,35 @@ class SchwarzChristoffel:
     for b in range(len(self.β)-1, 0, -1):
       self.β[b] = self.β[b-1]
     self.β[0] = head
-  
-  #====================================================================================================
-  # 
-  # parameters: None
-  # return: 
-  # desc: ζ
-  #====================================================================================================
-  def calcC1(self):
-    if self.A is None: raise Exception("Need to find parameters first")
-    z_i = self.polygon.vertices[0].zcoord
-    
-    def PiProdTerm(a, β):
-        return lambda ζ: (ζ-a)**(β)
-    
-    terms = []
-    for i in range(len(self.A)):
-      print(self.A[i], self.β[i])
-      terms.append(PiProdTerm(self.A[i], self.β[i]))
 
-    def integralFunc(ζ, termIndex=0):
-      if termIndex == len(terms) - 1:
-        return terms[termIndex](ζ)
-      result = terms[termIndex](ζ) * integralFunc(ζ, termIndex + 1)
-      return result
-    #print(integralFunc(1))
-    debugpy.breakpoint()
-    integral = self.complex_quadrature(integralFunc, 0, self.A[0])
-    self.c1 = z_i / integral
-
-
-  #complex quadrature code thanks to dr jimbob on stack overflow, plus some tweaks
-  def complex_quadrature(self, func, a, b, **kwargs):
-    def real_func(x):
-        return scipy.real(func(x))
-    def imag_func(x):
-        return scipy.imag(func(x))
-    real_integral = integrate.quad(real_func, a, b, **kwargs)
-    imag_integral = integrate.quad(imag_func, a, b, **kwargs)
-    return real_integral[0] + 1j*imag_integral[0]
-
-
-
-class SchwarzChristoffelAccessories:
-  def __init__(self, polygon):
-    self.N = len(polygon.vertices)
+    self.l1 = 0
+    self.l2 = 1
     self.A = self.approximateRealMapping()
-    self.β = [float(polygon.extAngles[i]) / np.pi for i in range(len(polygon.extAngles))]
-
-    # Rotating betas counter-clockwise by one
-    head = self.β[-1]
-    for b in range(len(self.β)-1, 0, -1):
-      self.β[b] = self.β[b-1]
-    self.β[0] = head
-
-    self.λ = [polygon.lines[i].length / polygon.lines[0].length for i in range(1, len(polygon.lines))]
+    self.λ = self.setLambdas()
     self.F = self.setF()
 
-    #print(self.λ)
+    print(self.λ)
 
+
+  def excludel1l2(self, iterative):
+    return iterative != self.l1 and iterative != self.l2
+
+  def setAllConditionals(self):
+    self.A = self.approximateRealMapping()
+    self.λ = self.setLambdas()
+    self.F = self.setF()
+    # Rotating betas counter-clockwise by one
+    head = self.β[-1]
+    for b in range(len(self.β)-1, 0, -1):
+      self.β[b] = self.β[b-1]
+    self.β[0] = head
+
+  def setLambdas(self):
+    λ = []
+    for i in range(len(self.polygon.lines)):
+      if i != self.l1:
+        λ.append(self.polygon.lines[i].length / self.polygon.lines[self.l1].length)
+    return λ
   #====================================================================================================
   # approximateRealMapping()
   # parameters: None
@@ -133,9 +69,14 @@ class SchwarzChristoffelAccessories:
   #       and arbitrarily incrementing values from 2 to N-1
   #====================================================================================================
   def approximateRealMapping(self):
-    A = [-1, 1]
-    for n in range(2, self.N):
-      A.append(n)
+    l1, l2 = self.l1, self.l2
+    A = [None for i in range(self.N)]
+    A[l1], A[l2] = -1,1
+    for leftIndex in range(len(A[:l1]) -1 , -1, -1):
+      A[leftIndex] = A[leftIndex + 1] - 1
+    for rightIndex in range(l2 + 1, len(A)):
+      A[rightIndex] = A[rightIndex - 1] + 1
+    print(A)
     return A
 
   #====================================================================================================
@@ -148,7 +89,7 @@ class SchwarzChristoffelAccessories:
     F = []
     def f(i):
       def _f(I):
-        return I[i] - self.λ[i-1] * I[0] 
+        return I[i] - self.λ[i-1] * I[self.l1] 
       return _f
     for i in range(1, self.N-1):
       F.append(f(i))
@@ -230,15 +171,18 @@ class SchwarzChristoffelAccessories:
   #====================================================================================================
   def generateJacobiMatrix(self, A, I):
     derivativeMatrix = []
-    for δISub in range(1, self.N - 1):
-      currδIδas = []
-      for δaSub in range(2, self.N):
-        currδIδas.append(self.calcSLFirstDerivative(A, δISub, δaSub))
-      derivativeMatrix.append(currδIδas)
+    for δISub in range(self.N-1):
+      if δISub != self.l1:
+        currδIδas = []
+        for δaSub in range(self.N):
+          if self.excludel1l2(δaSub):
+            currδIδas.append(self.calcSLFirstDerivative(A, δISub, δaSub))
+        derivativeMatrix.append(currδIδas)
     
     derivativeColumn = []
-    for δaSub in range(2, self.N):
-      derivativeColumn.append(self.calcSLFirstDerivative(A, 0, δaSub))
+    for δaSub in range(self.N):
+      if self.excludel1l2(δaSub):
+        derivativeColumn.append(self.calcSLFirstDerivative(A, self.l1, δaSub))
 
     #create Numpy objects
     derivativeMatrix = np.matrix(derivativeMatrix)
@@ -281,7 +225,7 @@ class SchwarzChristoffelAccessories:
   # return: bool
   # desc: checks if a values are converging to their respective solutions
   #====================================================================================================
-  def paramsValidated(self, A, APrev, acceptableError=10 ** -5):
+  def paramsValidated(self, A, APrev, acceptableError=10 ** -2):
     if A is None or APrev is None: return False
     for k in range(len(A)):
       if abs(A[k] - APrev[k]) > acceptableError: return False
@@ -294,43 +238,55 @@ class SchwarzChristoffelAccessories:
   # desc: returns a tuned list a values using newton raphson method iteratively,
   #       (currently maps directly from real axis to shape)
   #====================================================================================================
-  def getParameters(self):
+  def _getParameters(self):
     A = self.A
     APrev = None
-
+    print(A)
     As = []    
     I_ratios = []
 
     iter_counter = 0
 
     while not self.paramsValidated(A, APrev):
+      debugpy.breakpoint()
       APrev = A.copy()
       I = self.calcIntegrals(A)
       F = [func(I) for func in self.F]
       J = self.generateJacobiMatrix(A, I)
-      invJ = scipy.linalg.inv(J)
+      invJ = np.linalg.inv(J)
 
-      AVect = np.matrix(A[2:]).T
+      A.remove(A[self.l1]), A.remove(A[self.l2-1])
+      AwithoutLs = A
+      AVect = np.matrix(AwithoutLs).T
       F = np.matrix(F).T
       rightTerm = invJ * F
-      AVect = AVect - rightTerm
+      AVect = AVect - 0.5*rightTerm
 
-      A = self.A[:2]
+      A = []
+      pos = 0
+      for aSub in range(self.l1):
+        A.append(AVect.item(aSub))
+        pos += 1
       
-      for aSub in range(len(AVect)):
+      A.append(-1)
+      A.append(1)
+      for aSub in range(pos,len(AVect)):
         A.append(AVect.item(aSub))
 
       iter_counter += 1
       As.append(A)
 
+      if iter_counter > 300:
+        raise Exception("took too long")
+
       I_ratio = []
-      for i in range(1, self.N - 1):
-        I_ratio.append(I[i] / I[0])
+      for i in range(self.N-1):
+        if i != self.l1:
+          I_ratio.append(I[i] / I[self.l1])
       I_ratios.append(I_ratio)
 
-      if iter_counter > 200:
-        raise Exception("Taking too long")
 
+    print(A)
     t = np.arange(0, iter_counter, 1)
     fig, ax = plt.subplots()
     #ax.plot(t, As, color="green")
@@ -340,5 +296,30 @@ class SchwarzChristoffelAccessories:
     ax.grid()
     plt.show()
 
-    return A
+    self.A = A
+
+  def getAccessoryParams(self):
+    debugpy.breakpoint()
+    while True:
+      try:
+        self._getParameters()
+        break
+      except Exception as e:
+        print(e)
+        print("ERROR OCCURRED. TRYING SOMETHING ELSE")
+        if self.l2+1 != self.N:
+          self.l1 += 1
+          self.l2 += 1
+          self.setAllConditionals()
+        else:
+          print("the solution could not be calculated...")
+          break
+  #====================================================================================================
+  # 
+  # parameters: None
+  # return: 
+  # desc: ζ
+  #====================================================================================================
+  def calcC1(self):
+    pass
 
