@@ -20,8 +20,8 @@ from scipy.optimize import newton
 
 class SchwarzChristoffel:
   def __init__(self, polygon):
-    self.polygon = polygon
     self.N = len(polygon.vertices)
+    self.A = self.approximateRealMapping()
     self.aMappedPolys = polygon.vertices
     self.c1 = 1
     self.c2 = 0
@@ -33,29 +33,11 @@ class SchwarzChristoffel:
       self.β[b] = self.β[b-1]
     self.β[0] = head
 
-    self.l1 = 0
-    self.l2 = 1
-    self.A = self.approximateRealMapping()
-    self.λ = self.setLambdas()
+    self.λ = [polygon.lines[i].length / polygon.lines[0].length for i in range(1, len(polygon.lines))]
     self.F = self.setF()
 
     print(self.λ)
 
-
-  def excludel1l2(self, iterative):
-    return iterative != self.l1 and iterative != self.l2
-
-  def setAllConditionals(self):
-    self.A = self.approximateRealMapping()
-    self.λ = self.setLambdas()
-    self.F = self.setF()
-
-  def setLambdas(self):
-    λ = []
-    for i in range(len(self.polygon.lines)):
-      if i != self.l1:
-        λ.append(self.polygon.lines[i].length / self.polygon.lines[self.l1].length)
-    return λ
   #====================================================================================================
   # approximateRealMapping()
   # parameters: None
@@ -64,14 +46,9 @@ class SchwarzChristoffel:
   #       and arbitrarily incrementing values from 2 to N-1
   #====================================================================================================
   def approximateRealMapping(self):
-    l1, l2 = self.l1, self.l2
-    A = [None for i in range(self.N)]
-    A[l1], A[l2] = -1,1
-    for leftIndex in range(len(A[:l1]) -1 , -1, -1):
-      A[leftIndex] = A[leftIndex + 1] - 1
-    for rightIndex in range(l2 + 1, len(A)):
-      A[rightIndex] = A[rightIndex - 1] + 1
-    print(A)
+    A = [-1, 1]
+    for n in range(2, self.N):
+      A.append(n)
     return A
 
   #====================================================================================================
@@ -84,7 +61,7 @@ class SchwarzChristoffel:
     F = []
     def f(i):
       def _f(I):
-        return I[i] - self.λ[i-1] * I[self.l1] 
+        return I[i] - self.λ[i-1] * I[0] 
       return _f
     for i in range(1, self.N-1):
       F.append(f(i))
@@ -166,18 +143,15 @@ class SchwarzChristoffel:
   #====================================================================================================
   def generateJacobiMatrix(self, A, I):
     derivativeMatrix = []
-    for δISub in range(self.N-1):
-      if δISub != self.l1:
-        currδIδas = []
-        for δaSub in range(self.N):
-          if self.excludel1l2(δaSub):
-            currδIδas.append(self.calcSLFirstDerivative(A, δISub, δaSub))
-        derivativeMatrix.append(currδIδas)
+    for δISub in range(1, self.N - 1):
+      currδIδas = []
+      for δaSub in range(2, self.N):
+        currδIδas.append(self.calcSLFirstDerivative(A, δISub, δaSub))
+      derivativeMatrix.append(currδIδas)
     
     derivativeColumn = []
-    for δaSub in range(self.N):
-      if self.excludel1l2(δaSub):
-        derivativeColumn.append(self.calcSLFirstDerivative(A, self.l1, δaSub))
+    for δaSub in range(2, self.N):
+      derivativeColumn.append(self.calcSLFirstDerivative(A, 0, δaSub))
 
     #create Numpy objects
     derivativeMatrix = np.matrix(derivativeMatrix)
@@ -233,7 +207,7 @@ class SchwarzChristoffel:
   # desc: returns a tuned list a values using newton raphson method iteratively,
   #       (currently maps directly from real axis to shape)
   #====================================================================================================
-  def _getParameters(self):
+  def getParameters(self):
     A = self.A
     APrev = None
 
@@ -249,35 +223,25 @@ class SchwarzChristoffel:
       J = self.generateJacobiMatrix(A, I)
       invJ = np.linalg.inv(J)
 
-      A.remove(A[self.l1]), A.remove(A[self.l2-1])
-      AwithoutLs = A
-      AVect = np.matrix(AwithoutLs).T
+      AVect = np.matrix(A[2:]).T
       F = np.matrix(F).T
       rightTerm = invJ * F
       AVect = AVect - 0.5*rightTerm
 
-      A = []
-      pos = 0
-      for aSub in range(self.l1):
-        A.append(AVect.item(aSub))
-        pos += 1
+      A = self.A[:2]
       
-      A.append(-1)
-      A.append(1)
-      for aSub in range(pos,len(AVect)):
+      for aSub in range(len(AVect)):
         A.append(AVect.item(aSub))
 
       iter_counter += 1
       As.append(A)
 
       I_ratio = []
-      for i in range(self.N-1):
-        if i != self.l1:
-          I_ratio.append(I[i] / I[self.l1])
+      for i in range(1, self.N - 1):
+        I_ratio.append(I[i] / I[0])
       I_ratios.append(I_ratio)
 
 
-    print(A)
     t = np.arange(0, iter_counter, 1)
     fig, ax = plt.subplots()
     #ax.plot(t, As, color="green")
@@ -289,22 +253,6 @@ class SchwarzChristoffel:
 
     self.A = A
 
-  def getAccessoryParams(self):
-    debugpy.breakpoint()
-    while True:
-      try:
-        self._getParameters()
-        break
-      except Exception as e:
-        print(e)
-        print("ERROR OCCURRED. TRYING SOMETHING ELSE")
-        if self.l2+1 != self.N:
-          self.l1 += 1
-          self.l2 += 1
-          self.setAllConditionals()
-        else:
-          print("the solution could not be calculated...")
-          break
   #====================================================================================================
   # 
   # parameters: None
@@ -314,3 +262,18 @@ class SchwarzChristoffel:
   def calcC1(self):
     pass
 
+
+test8 = Polygon([
+  (0, -2),
+  (1,-1),
+  (0, 0),
+  (1, 0),
+  (1, 1),
+  (2, 2),
+  (0, 2),
+  (-1, 1),
+  (-1, -1)
+])
+
+sc = SchwarzChristoffel(test8)
+sc.getParameters()
