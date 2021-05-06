@@ -13,6 +13,7 @@ import numpy as np
 import copy
 import matplotlib
 import matplotlib.pyplot as plt
+import math
 from polygon import Polygon
 from numpy.linalg import LinAlgError
 import scipy.linalg
@@ -32,16 +33,14 @@ class SchwarzChristoffel:
   def getParameters(self):
     attempts = 0
     vertices = [(vertex.x, vertex.y) for vertex in self.polygon.vertices]
-
+    
     while True:
-      print(vertices)
       polygon = Polygon(vertices)
       try:
         sc_accessories = SchwarzChristoffelAccessories(polygon)
-        sc_accessories = sc_accessories.getParameters()
+        sc_accessories, I = sc_accessories.getParameters()
 
         for a in sc_accessories:
-          print(a)
           if type(a) == complex:
             raise Exception
         
@@ -58,6 +57,7 @@ class SchwarzChristoffel:
         return
 
     self.A = sc_accessories
+    self.I = I
     self.polygon = polygon
     self.β = [float(polygon.extAngles[i]) / np.pi for i in range(len(polygon.extAngles))]
 
@@ -67,46 +67,116 @@ class SchwarzChristoffel:
       self.β[b] = self.β[b-1]
     self.β[0] = head
   
-  #====================================================================================================
-  # 
-  # parameters: None
-  # return: 
-  # desc: ζ
-  #====================================================================================================
-  def calcC1(self):
-    if self.A is None: raise Exception("Need to find parameters first")
-    z_i = self.polygon.vertices[0].zcoord
-    
-    def PiProdTerm(a, β):
-        return lambda ζ: (ζ-a)**(β)
-    
-    terms = []
-    for i in range(len(self.A)):
-      print(self.A[i], self.β[i])
-      terms.append(PiProdTerm(self.A[i], self.β[i]))
 
-    def integralFunc(ζ, termIndex=0):
-      if termIndex == len(terms) - 1:
-        return terms[termIndex](ζ)
-      result = terms[termIndex](ζ) * integralFunc(ζ, termIndex + 1)
-      return result
-    #print(integralFunc(1))
-    debugpy.breakpoint()
-    integral = self.complex_quadrature(integralFunc, 0, self.A[0])
-    self.c1 = z_i / integral
 
 
   #complex quadrature code thanks to dr jimbob on stack overflow, plus some tweaks
-  def complex_quadrature(self, func, a, b, **kwargs):
+  def complexQuadrature(self, func, a, b):
     def real_func(x):
         return scipy.real(func(x))
     def imag_func(x):
         return scipy.imag(func(x))
-    real_integral = integrate.quad(real_func, a, b, **kwargs)
-    imag_integral = integrate.quad(imag_func, a, b, **kwargs)
+    real_integral = integrate.quad(real_func, a, b)
+    imag_integral = integrate.quad(imag_func, a, b)
     return real_integral[0] + 1j*imag_integral[0]
 
+  #====================================================================================================
+  # _calcC1()
+  # parameters: None
+  # return: None
+  # desc: solves for C1
+  #====================================================================================================
+  def _calcC1(self):
+    if self.A is None: raise Exception("Need to find parameters first")
+    z_1 = self.polygon.vertices[0].zcoord
+    z_2 = self.polygon.vertices[1].zcoord
+    
+    r1 = self.polygon.lines[0].length / self.I[0]
+    η1 = np.angle(z_2 - z_1) #TO DO: NEED TO CHECK CORNER CASE FOR N > 0, N < 0 FOR FORM M+Ni
+    θ1 = η1 + (math.pi * sum([self.β[i] for i in range(1,len(self.β))]) )
+    c1 = r1 * (math.cos(θ1) + 1j * math.sin(θ1))
+    self.c1 = c1
+  
+  #====================================================================================================
+  # _calcC2()
+  # parameters: None
+  # return: None
+  # desc: solves for C2
+  #====================================================================================================
+  def _calcC2(self):
+    if self.A is None: raise Exception("Need to find parameters first")
+    
+    def PiProdTerm(a_i, β_i):
+        return lambda ζ: (ζ-a_i)**(β_i)
+    
+    terms = []
+    for i in range(len(self.A)):
+      terms.append(PiProdTerm(self.A[i], self.β[i]))
 
+    def integralFunc(ζ, termIndex=0):
+      if termIndex == len(terms) - 1:
+        return ( 1 / terms[termIndex](ζ) )
+      result = ( 1 / terms[termIndex](ζ) ) * integralFunc(ζ, termIndex + 1)
+      return result
+
+    z_1 = self.polygon.vertices[0].zcoord
+    c2 = z_1 + (self.c1 * self.complexQuadrature(integralFunc, self.A[0], 0))
+
+    self.c2 = c2
+
+  #====================================================================================================
+  # 
+  # parameters:
+  #   z: imaginary point
+  # return: 
+  # desc: 
+  #====================================================================================================
+  def forwardMap(self, z):
+    self._calcC1()
+    self._calcC2()
+    img_z = scipy.imag(z)
+    def PiProdTerm(a_i, β_i):
+      return lambda ζ: (1j*ζ-a_i)**(β_i)
+    
+    terms = []
+    for i in range(len(self.A)):
+      terms.append(PiProdTerm(self.A[i], self.β[i]))
+
+    def imaginaryIntegralFunc(ζ, termIndex=0):
+      if termIndex == len(terms) - 1:
+        return ( 1 / terms[termIndex](ζ) )
+      result = ( 1 / terms[termIndex](ζ) ) * imaginaryIntegralFunc(ζ, termIndex + 1)
+      return result
+
+    γ = self.c1 * 1j * self.complexQuadrature(imaginaryIntegralFunc, 0,img_z) + self.c2
+    
+
+    def PiProdTerm(a_i, β_i):
+      return lambda ζ: (ζ+1j*img_z-a_i)**(β_i)
+    
+    terms = []
+    for i in range(len(self.A)):
+      terms.append(PiProdTerm(self.A[i], self.β[i]))
+
+    def realIntegralFunc(ζ, termIndex=0):
+      if termIndex == len(terms) - 1:
+        return ( 1 / terms[termIndex](ζ) )
+      result = ( 1 / terms[termIndex](ζ) ) * realIntegralFunc(ζ, termIndex + 1)
+      return result
+
+    realTerm = self.c1 * self.complexQuadrature(realIntegralFunc, 0, scipy.real(z)) + self.c2
+
+    point = γ + realTerm
+    return point
+
+  def graphPoly(self):
+    fig, ax = plt.subplots()
+    x = [vertex.x for vertex in self.polygon.vertices]
+    y = [vertex.y for vertex in self.polygon.vertices]
+    x.append(self.polygon.vertices[0].x)
+    y.append(self.polygon.vertices[0].y)
+    ax.plot(x,y)
+    plt.show()
 
 class SchwarzChristoffelAccessories:
   def __init__(self, polygon):
@@ -331,14 +401,14 @@ class SchwarzChristoffelAccessories:
       if iter_counter > 200:
         raise Exception("Taking too long")
 
-    t = np.arange(0, iter_counter, 1)
-    fig, ax = plt.subplots()
-    #ax.plot(t, As, color="green")
-    ax.hlines(self.λ[:-1], 0, iter_counter, linewidth=5, alpha=0.5, color="blue", linestyle="dashed", label="Target λ")
-    ax.plot(t, I_ratios, color="#FA605A", linewidth=5, alpha=0.5)
-    ax.set(xlabel='iterations', ylabel='I Ratios')
-    ax.grid()
-    plt.show()
+    # t = np.arange(0, iter_counter, 1)
+    # fig, ax = plt.subplots()
+    # #ax.plot(t, As, color="green")
+    # ax.hlines(self.λ[:-1], 0, iter_counter, linewidth=5, alpha=0.5, color="blue", linestyle="dashed", label="Target λ")
+    # ax.plot(t, I_ratios, color="#FA605A", linewidth=5, alpha=0.5)
+    # ax.set(xlabel='iterations', ylabel='I Ratios')
+    # ax.grid()
+    # plt.show()
 
-    return A
+    return A, I
 

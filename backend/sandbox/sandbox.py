@@ -39,12 +39,12 @@ class SCTest:
     resultsFile.write(f"did not converge: {didntConverge}")
     resultsFile.close()
 
-square = Polygon([
+square = [
     (0,0),
     (1,0),
-    (2,1),
+    (1,1),
     (0,1)
-    ], True)
+    ]
 
 test = Polygon([
     (0,0),
@@ -121,15 +121,15 @@ test6 = Polygon([
     (-1, 3),
 ])
 
-test7 = Polygon([
+test7 = [
   (0, 0),
   (2, 5),
   (1, 9),
   (-3, 2),
   (-2, -4)
-])
+]
 
-test8 = Polygon([
+test8 = [
   (0, -2),
   (1,-1),
   (0, 0),
@@ -139,7 +139,7 @@ test8 = Polygon([
   (0, 2),
   (-1, 1),
   (-1, -1)
-])
+]
 
 test9 = [
   (0.6, 1),
@@ -160,4 +160,5 @@ test10 =[
 
 sc = SchwarzChristoffel(test9)
 sc.getParameters()
-sc.calcC1()
+sc.graphPoly()
+print(sc.forwardMap(9 + 10j))
