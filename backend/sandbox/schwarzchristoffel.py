@@ -27,8 +27,8 @@ class SchwarzChristoffel:
     self.A = None
     self.β = None
     self.aMappedPolys = self.polygon.vertices
-    self.c1 = 1
-    self.c2 = 0
+    self.c1 = None
+    self.c2 = None
 
   def getParameters(self):
     attempts = 0
@@ -43,7 +43,7 @@ class SchwarzChristoffel:
         for a in sc_accessories:
           if type(a) == complex:
             raise Exception
-        
+
         break
       except Exception as e:
         print(e)
@@ -66,7 +66,6 @@ class SchwarzChristoffel:
     for b in range(len(self.β)-1, 0, -1):
       self.β[b] = self.β[b-1]
     self.β[0] = head
-  
 
 
 
@@ -132,8 +131,12 @@ class SchwarzChristoffel:
   # desc: 
   #====================================================================================================
   def forwardMap(self, z):
-    self._calcC1()
-    self._calcC2()
+    if self.c1 is None:
+      self._calcC1()
+    if self.c2 is None:
+      self._calcC2()
+      
+    #Calc imaginary part of integral
     img_z = scipy.imag(z)
     def PiProdTerm(a_i, β_i):
       return lambda ζ: (1j*ζ-a_i)**(β_i)
@@ -148,9 +151,9 @@ class SchwarzChristoffel:
       result = ( 1 / terms[termIndex](ζ) ) * imaginaryIntegralFunc(ζ, termIndex + 1)
       return result
 
-    γ = self.c1 * 1j * self.complexQuadrature(imaginaryIntegralFunc, 0,img_z) + self.c2
-    
+    γ = 1j * self.complexQuadrature(imaginaryIntegralFunc, 0,img_z)
 
+    #Calculate real part of integral
     def PiProdTerm(a_i, β_i):
       return lambda ζ: (ζ+1j*img_z-a_i)**(β_i)
     
@@ -164,19 +167,60 @@ class SchwarzChristoffel:
       result = ( 1 / terms[termIndex](ζ) ) * realIntegralFunc(ζ, termIndex + 1)
       return result
 
-    realTerm = self.c1 * self.complexQuadrature(realIntegralFunc, 0, scipy.real(z)) + self.c2
+    realTerm = self.complexQuadrature(realIntegralFunc, 0, scipy.real(z))
 
-    point = γ + realTerm
+    #Map this point and perform transformation
+    point = ( self.c1 * (γ + realTerm) ) + self.c2
     return point
 
-  def graphPoly(self):
-    fig, ax = plt.subplots()
+  def graphPoly(self, ax=None):
+    if ax is None:
+      fig, ax = plt.subplots()
     x = [vertex.x for vertex in self.polygon.vertices]
     y = [vertex.y for vertex in self.polygon.vertices]
     x.append(self.polygon.vertices[0].x)
     y.append(self.polygon.vertices[0].y)
-    ax.plot(x,y)
-    plt.show()
+    ax.plot(x, y)
+    return ax
+
+  def graphFlowLines(self, complexPoints, ax=None):
+    if ax is None:
+      fig, ax = plt.subplots()
+    mappedx = []
+    mappedy = []
+    for point in complexPoints:
+      mappedx.append(np.real(point))
+      mappedy.append(np.imag(point))
+    ax.plot(mappedx, mappedy)
+    return ax
+
+  def diskToPlane(self,W):
+    return 1j * ((1 + W) / (1 - W))
+    
+  def generateCirclePoints(self, r = 0):
+    points = list(np.arange(0, 2*math.pi, 0.02))
+    for i in range(len(points)):
+      mapPointToComplex = lambda theta: r * math.e ** (1j * theta)
+      cirleComplexPoint = mapPointToComplex(points[i])
+      planeComplexPoint = self.diskToPlane(cirleComplexPoint)
+      points[i] = self.forwardMap(planeComplexPoint)
+    return points
+
+  def generateLinePoints(self, theta):
+    points = list(np.arange(-0.999, 0.999, 0.01))
+    for i in range(len(points)):
+      mapPointToComplex = lambda r: r * math.e ** (1j * theta)
+      lineComplexPoint = mapPointToComplex(points[i])
+      planeComplexPoint = self.diskToPlane(lineComplexPoint)
+      points[i] = self.forwardMap(planeComplexPoint)
+    return points
+
+  def rangeToPi(self):
+    return list(np.arange(0, math.pi, 0.4))
+
+
+
+
 
 class SchwarzChristoffelAccessories:
   def __init__(self, polygon):
@@ -409,6 +453,5 @@ class SchwarzChristoffelAccessories:
     # ax.set(xlabel='iterations', ylabel='I Ratios')
     # ax.grid()
     # plt.show()
-
     return A, I
 

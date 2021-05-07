@@ -104,13 +104,13 @@ test4 = Polygon([
     (-2,0)
     ], True)
 
-test5 = Polygon([
+test5 = [
     (0, 0),
     (2, 0),
     (2, 1),
     (1.0, 1),
     (0, 1)
-])
+]
 
 test6 = Polygon([
     (0, 0),
@@ -158,7 +158,25 @@ test10 =[
   (-1, 1)
 ]
 
-sc = SchwarzChristoffel(test9)
+# sc = SchwarzChristoffel([
+#   (0, 0),
+#   (1, 0),
+#   (2, 1),
+#   (0, 2),
+#   (0, 3),
+#   (-2, 3),
+#   (-2,1)
+# ])
+sc = SchwarzChristoffel(square)
 sc.getParameters()
-sc.graphPoly()
-print(sc.forwardMap(9 + 10j))
+ax = sc.graphPoly()
+
+scale = list(np.arange(0.1, 0.999, 0.01))
+for i in range(len(scale)):
+  sc.graphFlowLines(sc.generateCirclePoints(scale[i]), ax)
+
+lineScale = sc.rangeToPi()
+for i in range(len(lineScale)):
+  sc.graphFlowLines(sc.generateLinePoints(lineScale[i]), ax)
+plt.show()
+
