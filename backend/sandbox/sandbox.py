@@ -167,15 +167,16 @@ test10 =[
 #   (-2, 3),
 #   (-2,1)
 # ])
+
 sc = SchwarzChristoffel(square)
 sc.getParameters()
 ax = sc.graphPoly()
 
-scale = list(np.arange(0.1, 0.999, 0.01))
+scale = sc.getCircleRange()
 for i in range(len(scale)):
   sc.graphFlowLines(sc.generateCirclePoints(scale[i]), ax)
 
-lineScale = sc.rangeToPi()
+lineScale = sc.getPiRange()
 for i in range(len(lineScale)):
   sc.graphFlowLines(sc.generateLinePoints(lineScale[i]), ax)
 plt.show()

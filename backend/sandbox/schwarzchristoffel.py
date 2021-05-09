@@ -38,7 +38,7 @@ class SchwarzChristoffel:
       polygon = Polygon(vertices)
       try:
         sc_accessories = SchwarzChristoffelAccessories(polygon)
-        sc_accessories, I = sc_accessories.getParameters()
+        sc_accessories, I, JLabels, J = sc_accessories.getParameters()
 
         for a in sc_accessories:
           if type(a) == complex:
@@ -58,6 +58,8 @@ class SchwarzChristoffel:
 
     self.A = sc_accessories
     self.I = I
+    self.JLabels = JLabels
+    self.J = J
     self.polygon = polygon
     self.β = [float(polygon.extAngles[i]) / np.pi for i in range(len(polygon.extAngles))]
 
@@ -175,12 +177,27 @@ class SchwarzChristoffel:
 
   def graphPoly(self, ax=None):
     if ax is None:
+      plt.rcParams["figure.subplot.right"] = 0.5
+      plt.rcParams["figure.subplot.bottom"] = 0.1
+      plt.rcParams["figure.subplot.top"] = 0.6
       fig, ax = plt.subplots()
+    
+    textBox = ""
+    textBox += "δI/δz VALUES:\n"
+
+    for index in range( (len(self.polygon.vertices) - 2)**2 ):
+      textBox += f"{self.JLabels[index]}: {self.J.item(index)}\n"
+    textBox += '\n\n'
+    textBox += "A VALUES:\n"+'\n'.join([f"a{i}: {self.A[i]}" for i in range(len(self.A))]) + '\n\n'
+    textBox += "LINES:\n" + '\n'.join([str(line) for line in self.polygon.lines])
+    ax.text(1.05,1,textBox, transform=ax.transAxes, fontsize=9, verticalalignment="top", bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
     x = [vertex.x for vertex in self.polygon.vertices]
     y = [vertex.y for vertex in self.polygon.vertices]
     x.append(self.polygon.vertices[0].x)
     y.append(self.polygon.vertices[0].y)
-    ax.plot(x, y)
+    ax.plot(x, y, color="blue")
+    for vertex in self.polygon.vertices:
+      ax.text(vertex.x, vertex.y, str(vertex))
     return ax
 
   def graphFlowLines(self, complexPoints, ax=None):
@@ -191,7 +208,7 @@ class SchwarzChristoffel:
     for point in complexPoints:
       mappedx.append(np.real(point))
       mappedy.append(np.imag(point))
-    ax.plot(mappedx, mappedy)
+    ax.plot(mappedx, mappedy, color="gray")
     return ax
 
   def diskToPlane(self,W):
@@ -200,25 +217,32 @@ class SchwarzChristoffel:
   def generateCirclePoints(self, r = 0):
     points = list(np.arange(0, 2*math.pi, 0.02))
     for i in range(len(points)):
-      mapPointToComplex = lambda theta: r * math.e ** (1j * theta)
+      mapPointToComplex = lambda θ: r * math.e ** (1j * θ)
       cirleComplexPoint = mapPointToComplex(points[i])
       planeComplexPoint = self.diskToPlane(cirleComplexPoint)
       points[i] = self.forwardMap(planeComplexPoint)
     return points
 
-  def generateLinePoints(self, theta):
+  def generateLinePoints(self, θ):
     points = list(np.arange(-0.999, 0.999, 0.01))
     for i in range(len(points)):
-      mapPointToComplex = lambda r: r * math.e ** (1j * theta)
+      mapPointToComplex = lambda r: r * math.e ** (1j * θ)
       lineComplexPoint = mapPointToComplex(points[i])
       planeComplexPoint = self.diskToPlane(lineComplexPoint)
       points[i] = self.forwardMap(planeComplexPoint)
     return points
 
-  def rangeToPi(self):
+  def getPiRange(self):
     return list(np.arange(0, math.pi, 0.4))
 
-
+  def getCircleRange(self):
+    approach = lambda x: 1 / (1 + math.e ** (-0.5 * x))
+    circleRange = []
+    for x in range(-100, 100, 20):
+      x = 0.10*x
+      circleRange.append(approach(x))
+    circleRange.append(0.999)
+    return circleRange
 
 
 
@@ -227,7 +251,7 @@ class SchwarzChristoffelAccessories:
     self.N = len(polygon.vertices)
     self.A = self.approximateRealMapping()
     self.β = [float(polygon.extAngles[i]) / np.pi for i in range(len(polygon.extAngles))]
-
+    self.JLabels = []
     # Rotating betas counter-clockwise by one
     head = self.β[-1]
     for b in range(len(self.β)-1, 0, -1):
@@ -347,6 +371,7 @@ class SchwarzChristoffelAccessories:
     for δISub in range(1, self.N - 1):
       currδIδas = []
       for δaSub in range(2, self.N):
+        self.JLabels.append(f"δI{δISub}/δa{δaSub}")
         currδIδas.append(self.calcSLFirstDerivative(A, δISub, δaSub))
       derivativeMatrix.append(currδIδas)
     
@@ -453,5 +478,5 @@ class SchwarzChristoffelAccessories:
     # ax.set(xlabel='iterations', ylabel='I Ratios')
     # ax.grid()
     # plt.show()
-    return A, I
+    return A, I, self.JLabels, J
 
