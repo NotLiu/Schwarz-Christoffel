@@ -168,7 +168,24 @@ test10 =[
 #   (-2,1)
 # ])
 
-sc = SchwarzChristoffel(square)
+test11 = [
+    (2.81, 0.95),
+    (5.23, 0.01),
+    (7.48, 1.32),
+    (7.86, 3.89),
+    (6.09, 5.80),
+    (3.49, 5.59),
+    (2.03, 3.44)
+]
+
+test12 = [
+  (0, 0),
+  (1, 0),
+  (2, 2),
+  (1, 4),
+  (-1, 2)
+]
+sc = SchwarzChristoffel(test11)
 sc.getParameters()
 ax = sc.graphPoly()
 
@@ -179,5 +196,8 @@ for i in range(len(scale)):
 lineScale = sc.getPiRange()
 for i in range(len(lineScale)):
   sc.graphFlowLines(sc.generateLinePoints(lineScale[i]), ax)
+
+sc.quadTest()
+
 plt.show()
 

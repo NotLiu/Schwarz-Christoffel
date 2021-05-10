@@ -11,6 +11,14 @@ def defPoly(vertices):
     return testPoly
 # from django.views.decorators.csrf import csrf_exempt
 
+@api_view(['GET', 'POST'])
+def get_sc(request):
+  if request.method == 'GET':
+    print(request)
+    return Response(request.data)
+  if request.method == 'POST':
+    pass
+
 
 @api_view(['GET', 'POST'])
 def data_transfer(request):

@@ -38,38 +38,31 @@ class SchwarzChristoffel:
       polygon = Polygon(vertices)
       try:
         sc_accessories = SchwarzChristoffelAccessories(polygon)
-        sc_accessories, I, JLabels, J = sc_accessories.getParameters()
+        A, I, JLabels, J = sc_accessories.getParameters()
 
-        for a in sc_accessories:
+        for a in A:
           if type(a) == complex:
             raise Exception
-
         break
       except Exception as e:
         print(e)
+
         head = vertices[-1]
         for v in range(len(vertices) - 1, 0, -1):
           vertices[v] = vertices[v - 1]
         vertices[0] = head
+        print(f"Rotated vertices to {vertices}")
         attempts += 1
       if attempts >= len(vertices):
         print("Solution not found...")
         return
 
-    self.A = sc_accessories
+    self.A = A
     self.I = I
     self.JLabels = JLabels
     self.J = J
-    self.polygon = polygon
-    self.β = [float(polygon.extAngles[i]) / np.pi for i in range(len(polygon.extAngles))]
-
-    # Rotating betas counter-clockwise by one
-    head = self.β[-1]
-    for b in range(len(self.β)-1, 0, -1):
-      self.β[b] = self.β[b-1]
-    self.β[0] = head
-
-
+    self.polygon = sc_accessories.polygon
+    self.β = sc_accessories.β
 
   #complex quadrature code thanks to dr jimbob on stack overflow, plus some tweaks
   def complexQuadrature(self, func, a, b):
@@ -94,7 +87,8 @@ class SchwarzChristoffel:
     
     r1 = self.polygon.lines[0].length / self.I[0]
     η1 = np.angle(z_2 - z_1) #TO DO: NEED TO CHECK CORNER CASE FOR N > 0, N < 0 FOR FORM M+Ni
-    θ1 = η1 + (math.pi * sum([self.β[i] for i in range(1,len(self.β))]) )
+    #θ1 = η1 + (math.pi * sum([self.β[i] for i in range(1,len(self.β))]) )
+    θ1 = η1 - math.pi * self.β[0]
     c1 = r1 * (math.cos(θ1) + 1j * math.sin(θ1))
     self.c1 = c1
   
@@ -153,7 +147,7 @@ class SchwarzChristoffel:
       result = ( 1 / terms[termIndex](ζ) ) * imaginaryIntegralFunc(ζ, termIndex + 1)
       return result
 
-    γ = 1j * self.complexQuadrature(imaginaryIntegralFunc, 0,img_z)
+    γ = 1j * self.complexQuadrature(imaginaryIntegralFunc, 0, img_z)
 
     #Calculate real part of integral
     def PiProdTerm(a_i, β_i):
@@ -172,7 +166,7 @@ class SchwarzChristoffel:
     realTerm = self.complexQuadrature(realIntegralFunc, 0, scipy.real(z))
 
     #Map this point and perform transformation
-    point = ( self.c1 * (γ + realTerm) ) + self.c2
+    point = (self.c1 * (γ + realTerm)) + self.c2
     return point
 
   def graphPoly(self, ax=None):
@@ -200,7 +194,7 @@ class SchwarzChristoffel:
       ax.text(vertex.x, vertex.y, str(vertex))
     return ax
 
-  def graphFlowLines(self, complexPoints, ax=None):
+  def graphFlowLines(self, complexPoints, ax=None, color="gray"):
     if ax is None:
       fig, ax = plt.subplots()
     mappedx = []
@@ -208,7 +202,7 @@ class SchwarzChristoffel:
     for point in complexPoints:
       mappedx.append(np.real(point))
       mappedy.append(np.imag(point))
-    ax.plot(mappedx, mappedy, color="gray")
+    ax.plot(mappedx, mappedy, color=color)
     return ax
 
   def diskToPlane(self,W):
@@ -244,10 +238,35 @@ class SchwarzChristoffel:
     circleRange.append(0.999)
     return circleRange
 
+  def upperHalfPlaneTest(self, point, ax):
+    points = []
+    for i in range(200):
+      coord = complex(point, i)
+      image = self.forwardMap(coord)
+      points.append(image)
+    self.graphFlowLines(points, ax, "green")
 
+  def quadTest(self):
+    def PiProdTerm(a_i, β_i):
+      return lambda ζ: (ζ+1j*scipy.imag(self.A[1])-a_i)**(β_i)
+    
+    terms = []
+    for i in range(len(self.A)):
+      terms.append(PiProdTerm(self.A[i], self.β[i]))
+
+    def realIntegralFunc(ζ, termIndex=0):
+      if termIndex == len(terms) - 1:
+        return ( 1 / terms[termIndex](ζ) )
+      result = ( 1 / terms[termIndex](ζ) ) * realIntegralFunc(ζ, termIndex + 1)
+      return result
+
+    realTerm = self.complexQuadrature(realIntegralFunc, self.A[0], self.A[1])
+    realTerm = abs(realTerm * abs(self.c1))
+    print(self.polygon.lines[0].length, realTerm)
 
 class SchwarzChristoffelAccessories:
   def __init__(self, polygon):
+    self.polygon = polygon
     self.N = len(polygon.vertices)
     self.A = self.approximateRealMapping()
     self.β = [float(polygon.extAngles[i]) / np.pi for i in range(len(polygon.extAngles))]
@@ -399,7 +418,7 @@ class SchwarzChristoffelAccessories:
   # desc: slightly alters current list of a's at index δaSub, and uses approximation of five-point
   #       Langrange differential formula to calculate the first derivative of side length I wrt a
   #====================================================================================================
-  def calcSLFirstDerivative(self, A, δISub, δaSub, h=0.01):
+  def calcSLFirstDerivative(self, A, δISub, δaSub, h=0.001):
     terms = []
     termModifiers = [-2 * h, -h, h, 2 * h]
     for termIndex in range(4):
@@ -420,7 +439,7 @@ class SchwarzChristoffelAccessories:
   # return: bool
   # desc: checks if a values are converging to their respective solutions
   #====================================================================================================
-  def paramsValidated(self, A, APrev, acceptableError=10 ** -5):
+  def paramsValidated(self, A, APrev, acceptableError=10 ** -3):
     if A is None or APrev is None: return False
     for k in range(len(A)):
       if abs(A[k] - APrev[k]) > acceptableError: return False
@@ -478,5 +497,7 @@ class SchwarzChristoffelAccessories:
     # ax.set(xlabel='iterations', ylabel='I Ratios')
     # ax.grid()
     # plt.show()
+    print(f"lambdas: {self.λ}")
+    print(f"I ratios: {I_ratio}")
     return A, I, self.JLabels, J
 
