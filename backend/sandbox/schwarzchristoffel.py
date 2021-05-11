@@ -23,12 +23,18 @@ from scipy.optimize import newton
 
 class SchwarzChristoffel: 
   def __init__(self, vertices):
-    self.polygon = Polygon(vertices)
     self.A = None
     self.β = None
-    self.aMappedPolys = self.polygon.vertices
     self.c1 = None
     self.c2 = None
+    self.I = None
+    self.IRatios = None
+    self.J = None
+    self.JLabels = None
+    self.λ = None
+    self.polygon = Polygon(vertices)
+    self.aMappedPolys = self.polygon.vertices
+    self.flowLines = []
 
   def getParameters(self):
     attempts = 0
@@ -38,7 +44,7 @@ class SchwarzChristoffel:
       polygon = Polygon(vertices)
       try:
         sc_accessories = SchwarzChristoffelAccessories(polygon)
-        A, I, JLabels, J = sc_accessories.getParameters()
+        A, I, IRatios, J, JLabels, λ = sc_accessories.getParameters()
 
         for a in A:
           if type(a) == complex:
@@ -57,12 +63,16 @@ class SchwarzChristoffel:
         print("Solution not found...")
         return
 
-    self.A = A
-    self.I = I
-    self.JLabels = JLabels
-    self.J = J
     self.polygon = sc_accessories.polygon
     self.β = sc_accessories.β
+    self.A = A
+    self.I = I
+    self.IRatios = IRatios
+    self.J = J
+    self.JLabels = JLabels
+    self.λ = λ
+
+
 
   #complex quadrature code thanks to dr jimbob on stack overflow, plus some tweaks
   def complexQuadrature(self, func, a, b):
@@ -194,15 +204,17 @@ class SchwarzChristoffel:
       ax.text(vertex.x, vertex.y, str(vertex))
     return ax
 
-  def graphFlowLines(self, complexPoints, ax=None, color="gray"):
+  def graphFlowLines(self, ax=None, color="gray"):
     if ax is None:
       fig, ax = plt.subplots()
-    mappedx = []
-    mappedy = []
-    for point in complexPoints:
-      mappedx.append(np.real(point))
-      mappedy.append(np.imag(point))
-    ax.plot(mappedx, mappedy, color=color)
+
+    for pointSet in self.flowLines:
+      mappedx = []
+      mappedy = []
+      for point in pointSet:
+        mappedx.append(np.real(point))
+        mappedy.append(np.imag(point))
+      ax.plot(mappedx, mappedy, color=color)
     return ax
 
   def diskToPlane(self,W):
@@ -215,6 +227,7 @@ class SchwarzChristoffel:
       cirleComplexPoint = mapPointToComplex(points[i])
       planeComplexPoint = self.diskToPlane(cirleComplexPoint)
       points[i] = self.forwardMap(planeComplexPoint)
+    self.flowLines.append(points)
     return points
 
   def generateLinePoints(self, θ):
@@ -224,7 +237,17 @@ class SchwarzChristoffel:
       lineComplexPoint = mapPointToComplex(points[i])
       planeComplexPoint = self.diskToPlane(lineComplexPoint)
       points[i] = self.forwardMap(planeComplexPoint)
+    self.flowLines.append(points)
     return points
+
+  def getFlowLines(self):
+    scale = self.getCircleRange()
+    for i in range(len(scale)):
+      self.generateCirclePoints(scale[i])
+
+    lineScale = self.getPiRange()
+    for i in range(len(lineScale)):
+      self.generateLinePoints(lineScale[i])
 
   def getPiRange(self):
     return list(np.arange(0, math.pi, 0.4))
@@ -453,11 +476,11 @@ class SchwarzChristoffelAccessories:
   #       (currently maps directly from real axis to shape)
   #====================================================================================================
   def getParameters(self):
+    print("Finding parameters...")
     A = self.A
     APrev = None
 
     As = []    
-    I_ratios = []
 
     iter_counter = 0
 
@@ -484,20 +507,9 @@ class SchwarzChristoffelAccessories:
       I_ratio = []
       for i in range(1, self.N - 1):
         I_ratio.append(I[i] / I[0])
-      I_ratios.append(I_ratio)
 
-      if iter_counter > 200:
+      if iter_counter > 50:
         raise Exception("Taking too long")
-
-    # t = np.arange(0, iter_counter, 1)
-    # fig, ax = plt.subplots()
-    # #ax.plot(t, As, color="green")
-    # ax.hlines(self.λ[:-1], 0, iter_counter, linewidth=5, alpha=0.5, color="blue", linestyle="dashed", label="Target λ")
-    # ax.plot(t, I_ratios, color="#FA605A", linewidth=5, alpha=0.5)
-    # ax.set(xlabel='iterations', ylabel='I Ratios')
-    # ax.grid()
-    # plt.show()
-    print(f"lambdas: {self.λ}")
-    print(f"I ratios: {I_ratio}")
-    return A, I, self.JLabels, J
-
+    
+    print("Parameters found!")
+    return A, I, I_ratio, J, self.JLabels, self.λ

@@ -54,7 +54,7 @@ test = Polygon([
     (2,-3)
     ])
 
-test2 = Polygon([
+test2 = [
     (0,0),
     (2,2),
     (0,4),
@@ -65,7 +65,7 @@ test2 = Polygon([
     (3,2),
     (4,2),
     (4,0)
-    ])
+    ]
 
 test3 = Polygon([
     (0,0),
@@ -185,19 +185,13 @@ test12 = [
   (1, 4),
   (-1, 2)
 ]
-sc = SchwarzChristoffel(test11)
+sc = SchwarzChristoffel(square)
 sc.getParameters()
 ax = sc.graphPoly()
+sc.getFlowLines()
+sc.graphFlowLines(ax)
 
-scale = sc.getCircleRange()
-for i in range(len(scale)):
-  sc.graphFlowLines(sc.generateCirclePoints(scale[i]), ax)
-
-lineScale = sc.getPiRange()
-for i in range(len(lineScale)):
-  sc.graphFlowLines(sc.generateLinePoints(lineScale[i]), ax)
-
-sc.quadTest()
+# sc.quadTest()
 
 plt.show()
 
