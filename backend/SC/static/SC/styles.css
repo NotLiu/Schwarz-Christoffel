@@ -113,11 +113,12 @@ li {
 .react-tabs__tab-list {
   display: flex;
   flex-direction: column;
-  width: 140px;
+  width: 160px;
   margin: 0 0 0 !important;
   padding: 0;
   color: white;
   background: #222429;
+  overflow-y: scroll;
 }
 
 .react-tabs__tab {

@@ -107,11 +107,31 @@ class App extends React.Component {
     this.writeVFile = this.writeVFile.bind(this);
     this.uploadVFile = this.uploadVFile.bind(this);
 
+    //calculate sc
+    this.calculateSC = this.calculateSC.bind(this);
+
     //refresh
     this.refresh = this.refresh.bind(this);
 
     //flags
     this.ttFlag = false; //only show tt after moving mouse, therefore allowing data to be loaded in first
+  }
+
+  async calculateSC() {
+    if (this.state.vertices.length >= 3) {
+      try {
+        const sc = await axios.post(
+          "/getsc",
+          { vertices: this.state.vertices },
+          {
+            headers: { dataType: "json" },
+          }
+        );
+        console.log(sc);
+      } catch (err) {
+        console.log(err);
+      }
+    }
   }
 
   writeVFile() {
@@ -1231,6 +1251,9 @@ class App extends React.Component {
                   <Tab>Interior Angles</Tab>
                   <Tab>Line Lengths</Tab>
                   <Tab>Line Slopes</Tab>
+                  <Tab>lambda</Tab>
+                  <Tab>Is</Tab>
+                  <Tab>IRatios</Tab>
                 </TabList>
 
                 <TabPanel>
@@ -1250,6 +1273,22 @@ class App extends React.Component {
 
                 <TabPanel>
                   <div className="box">{this.lineLenTab(lineLenList)}</div>
+                  <button onClick={this.onClickVert}>Clear</button>
+                </TabPanel>
+
+                {/* sc calculation tabs */}
+                <TabPanel>
+                  <div className="box">{this.lineSlopeTab(lineSlopeList)}</div>
+                  <button onClick={this.onClickVert}>Clear</button>
+                </TabPanel>
+
+                <TabPanel>
+                  <div className="box">{this.lineSlopeTab(lineSlopeList)}</div>
+                  <button onClick={this.onClickVert}>Clear</button>
+                </TabPanel>
+
+                <TabPanel>
+                  <div className="box">{this.lineSlopeTab(lineSlopeList)}</div>
                   <button onClick={this.onClickVert}>Clear</button>
                 </TabPanel>
 
@@ -1375,7 +1414,9 @@ class App extends React.Component {
                 </div>
               </div>
               <div id="calculateSC">
-                <button type="button">CALCULATE MAPPING</button>
+                <button type="button" onClick={this.calculateSC}>
+                  CALCULATE MAPPING
+                </button>
               </div>
             </div>
           </div>
@@ -1385,7 +1426,7 @@ class App extends React.Component {
             <h1>
               Web-App for the Visualization of Schwarz-Christoffel Mapping
             </h1>
-            <h2>Introduction</h2>
+            <h2 id="intro">Introduction</h2>
             <p>
               Conformal mapping is a core concept in complex analysis, and has
               many applications outside the realm of pure mathematics.
@@ -1411,11 +1452,12 @@ class App extends React.Component {
               delved into the only existing modern implementation of the
               Schwarz-Christoffel transformation.
             </p>
-            <h2>References</h2>
+            <h2 id="process"></h2>
+            <h2 id="ref">References</h2>
             <p>XXX</p>
-            <h2>Authors</h2>
+            <h2 id="authors">Authors</h2>
             Andrew Liu Zane Fadul
-            <h2>Special Thanks</h2>
+            <h2 id="thanks">Special Thanks</h2>
             xxx
           </div>
           <div id="infoNavigator">
