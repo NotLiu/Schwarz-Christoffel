@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
 from sandbox.polygon import Vertex, Line, Angle, Polygon
-from schwarzchristoffel import SchwarzChristoffel
+from sandbox.schwarzchristoffel import SchwarzChristoffel
 
 def defPoly(vertices):
     print(type(vertices[0]))

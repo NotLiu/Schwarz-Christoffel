@@ -31,6 +31,10 @@ class App extends React.Component {
       dataHover: null,
       hoverStart: [],
       hoverState: false,
+      flowLines: [],
+      lambda: [],
+      Is: [],
+      IRatios: [],
     };
 
     this.dataStr = "data:text/json;charset=utf-8,";
@@ -1255,27 +1259,42 @@ class App extends React.Component {
                 </TabPanel>
               </Tabs>
               <div id="coordSettings">
-                <form className="setForm">
-                  <label>Plane Width</label>
-                  <br />
-                  <input
-                    type="text"
-                    name="planeSize"
-                    // value={this.canvasWidth}
-                    onChange={this.changeCanvasWidth}
-                  />
-                  <br />
-                  <label>Plane Height</label>
-                  <br />
-                  <input
-                    type="text"
-                    name="planeSize"
-                    // value={this.canvasHeight}
-                    onChange={this.changeCanvasHeight}
-                  />
-                  <br />
-                  <input type="submit" value="submit" />
-                </form>
+                <div style={{ flexDirection: "column" }}>
+                  <form
+                    className="setForm"
+                    style={{ height: "13em", marginBottom: ".5em" }}
+                  >
+                    <label>Plane Width</label>
+                    <br />
+                    <input
+                      type="text"
+                      name="planeSize"
+                      // value={this.canvasWidth}
+                      onChange={this.changeCanvasWidth}
+                    />
+                    <br />
+                    <label>Plane Height</label>
+                    <br />
+                    <input
+                      type="text"
+                      name="planeSize"
+                      // value={this.canvasHeight}
+                      onChange={this.changeCanvasHeight}
+                    />
+                    <br />
+                  </form>
+                  <form className="file">
+                    Import JSON
+                    <input
+                      type="file"
+                      onClick={() => {
+                        this.value = null;
+                        return false;
+                      }}
+                      onChange={this.uploadVFile}
+                    ></input>
+                  </form>
+                </div>
                 <form className="setForm">
                   <label>(-)X Limit</label>
                   <br />
@@ -1310,53 +1329,53 @@ class App extends React.Component {
                   ></input>
                   <br></br>
                 </form>
-                <form className="setForm" onSubmit={this.submitVertex}>
-                  <label>Input Vertex</label>
-                  <br></br>
-                  <label className="vertexLabel">X</label>
-                  <input
-                    type="text"
-                    name="X"
-                    style={{ width: "6em" }}
-                    // value={this.canvasWidth}
-                    onChange={(event) => {
-                      this.setX = event.target.value;
+                <div style={{ flexDirection: "column" }}>
+                  <form
+                    className="setForm"
+                    onSubmit={this.submitVertex}
+                    style={{
+                      height: "13em",
+                      marginBottom: ".5em",
+                      marginRight: "0",
                     }}
-                  />
-                  <br />
-                  <label className="vertexLabel">Y</label>
-                  <input
-                    type="text"
-                    name="Y"
-                    style={{ width: "6em" }}
-                    className="inputVertText"
-                    // value={this.canvasHeight}
-                    onChange={(event) => {
-                      this.setY = event.target.value;
-                    }}
-                  />
-                  <br />
-                  <input type="submit" value="submit" />
-                </form>
-              </div>
-              <div id="fileFlex">
-                <div className="file">
-                  Export JSON
-                  <a id="download" href={this.dataStr} download={this.dlName}>
-                    DOWNLOAD
-                  </a>
+                  >
+                    <label>Input Vertex</label>
+                    <br></br>
+                    <label className="vertexLabel">X</label>
+                    <input
+                      type="text"
+                      name="X"
+                      style={{ width: "6em" }}
+                      // value={this.canvasWidth}
+                      onChange={(event) => {
+                        this.setX = event.target.value;
+                      }}
+                    />
+                    <br />
+                    <label className="vertexLabel">Y</label>
+                    <input
+                      type="text"
+                      name="Y"
+                      style={{ width: "6em" }}
+                      className="inputVertText"
+                      // value={this.canvasHeight}
+                      onChange={(event) => {
+                        this.setY = event.target.value;
+                      }}
+                    />
+                    <br />
+                    <input type="submit" value="submit" />
+                  </form>
+                  <div className="file">
+                    Export JSON
+                    <a id="download" href={this.dataStr} download={this.dlName}>
+                      DOWNLOAD
+                    </a>
+                  </div>
                 </div>
-                <form className="file">
-                  Import JSON
-                  <input
-                    type="file"
-                    onClick={() => {
-                      this.value = null;
-                      return false;
-                    }}
-                    onChange={this.uploadVFile}
-                  ></input>
-                </form>
+              </div>
+              <div id="calculateSC">
+                <button type="button">CALCULATE MAPPING</button>
               </div>
             </div>
           </div>

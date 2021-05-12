@@ -18,7 +18,7 @@ body {
   font-family: sans-serif;
   width: 100%;
   height: 42.5em;
-  background-color: #2a2c31;
+  background-color: #222429;
   padding: 25px;
 }
 
@@ -104,9 +104,9 @@ li {
 
   width: 470px;
   height: 170px;
-  border: 1px solid #2a2c31;
+  border: 1px solid #222429;
   color: white;
-  background: rgb(99, 122, 134);
+  background: rgb(86, 125, 146);
   border-radius: 0 0 0 0;
 }
 
@@ -117,7 +117,7 @@ li {
   margin: 0 0 0 !important;
   padding: 0;
   color: white;
-  background: #2a2c31;
+  background: #222429;
 }
 
 .react-tabs__tab {
@@ -177,12 +177,6 @@ li {
   color: floralwhite;
 }
 
-#fileFlex {
-  display: flex;
-  flex-direction: row;
-  margin-top: 1em;
-  color: floralwhite;
-}
 .file {
   display: flex;
   flex-direction: column;
@@ -214,7 +208,7 @@ li {
 .setForm {
   /* display: flex;
   flex-direction: column; */
-  background-color: rgb(99, 122, 134);
+  background-color: rgb(86, 125, 146);
   padding: 1em 0.72em;
 }
 
@@ -226,13 +220,24 @@ li {
 .file {
   display: flex;
   flex-direction: column;
-  background-color: rgb(99, 122, 134);
-  width: 8.5em;
-  height: 5em;
-  padding: 1em 1em;
-  margin: 0 3.1em;
+  background-color: rgb(86, 125, 146);
+  width: 9.47em;
+  height: 6em;
+  padding: 1em 1.5em;
 }
 
 .vertexLabel {
   margin: 0 0.5em;
+}
+
+#calculateSC {
+  width: 100%;
+}
+
+#calculateSC > button {
+  width: 100%;
+  padding: 1.6em 1em;
+  font-size: 24px;
+  background-color: rgb(107, 199, 142);
+  color: floralwhite;
 }
