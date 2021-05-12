@@ -118,11 +118,97 @@ class App extends React.Component {
     this.ttFlag = false; //only show tt after moving mouse, therefore allowing data to be loaded in first
   }
 
-  generateFlow(coords) {}
+  generateFlow(coords) {
+    try {
+      let flowLines = [...this.state.flowLines];
+      for (let i = 0; i < coords.length; i++) {
+        let pathD = [];
+        console.log(coords[i][0]);
+
+        if (coords[i][0].includes("+")) {
+          pathD.push(
+            "M " +
+              this.vertexPlotConversionX(
+                Number(coords[i][0].slice(1, -2).split("+")[0])
+              ) +
+              " " +
+              this.vertexPlotConversionY(
+                Number(coords[i][0].slice(1, -2).split("+")[1])
+              ) +
+              " "
+          );
+        } else if (coords[i][0].slice(3, -2).includes("-")) {
+          if (coords[i][0][1] == "-") {
+            pathD.push(
+              "M " +
+                this.vertexPlotConversionX(
+                  Number("-" + coords[i][0].slice(1, -2).split("-")[1])
+                ) +
+                " " +
+                this.vertexPlotConversionY(
+                  Number("-" + coords[i][0].slice(1, -2).split("-")[2])
+                ) +
+                " "
+            );
+          } else {
+            pathD.push(
+              "M " +
+                this.vertexPlotConversionX(
+                  Number(coords[i][0].slice(1, -2).split("-")[0])
+                ) +
+                " " +
+                this.vertexPlotConversionY(
+                  Number("-" + coords[i][0].slice(1, -2).split("-")[1])
+                ) +
+                " "
+            );
+          }
+        }
+
+        for (let j = 2; j < coords[i].length - 1; j++) {
+          let pathCoord = [];
+
+          if (coords[i][j].includes("+")) {
+            pathCoord = coords[i][j].slice(1, -2).split("+");
+          } else if (coords[i][j].slice(3, -2).includes("-")) {
+            if (coords[i][j][1] == "-") {
+              pathCoord = coords[i][j].slice(1, -2).split("-");
+              pathCoord[0] = "-" + pathCoord[1];
+              pathCoord[1] = "-" + pathCoord[2];
+            } else {
+              pathCoord = coords[i][j].slice(1, -2).split("-");
+              pathCoord[1] = "-" + pathCoord[1];
+            }
+          }
+          pathCoord[0] = this.vertexPlotConversionX(Number(pathCoord[0]));
+          pathCoord[1] = this.vertexPlotConversionY(Number(pathCoord[1]));
+
+          pathD.push("L " + pathCoord[0] + " " + pathCoord[1] + " ");
+        }
+        // pathD.push("Z");
+
+        console.log(coords[i]);
+        console.log("+++++++++++++++++");
+        console.log(pathD);
+
+        let path = <path className="flowLine" d={pathD.join(" ")}></path>;
+        flowLines.push(path);
+        this.setState({ flowLines }, () => {
+          flowLines = [...this.state.flowLines];
+          // console.log(this.state.flowLines);
+        });
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
 
   async calculateSC() {
     if (this.state.vertices.length >= 3) {
       try {
+        this.setState({ lambda: ["CALCULATING"] });
+        this.setState({ Is: ["CALCULATING"] });
+        this.setState({ IRatios: ["CALCULATING"] });
         const sc = await axios.post(
           "/getsc",
           { vertices: this.state.vertices },
@@ -247,6 +333,12 @@ class App extends React.Component {
   }
 
   refresh(vert = [], b = false) {
+    if (this.state.IRatios != []) {
+      this.setState({ IRatios: [] });
+      this.setState({ Is: [] });
+      this.setState({ flowLines: [] });
+      this.setState({ lamda: [] });
+    }
     const vertices = [];
     if (vert != [] && b) {
       for (let i = 0; i < vert.length; i += 2) {
@@ -1035,6 +1127,10 @@ class App extends React.Component {
     this.setState({ lineLengths: [] });
     this.setState({ lineSlopes: [] });
     this.setState({ planePlotVertices: [] });
+    this.setState({ IRatios: [] });
+    this.setState({ Is: [] });
+    this.setState({ flowLines: [] });
+    this.setState({ lamda: [] });
   };
   render() {
     const listItems = this.state.vertices.map((vertex, index) => {
@@ -1289,6 +1385,7 @@ class App extends React.Component {
                     />
                     {this.plotPolygonLines()}
                     {this.tempCircle}
+                    {this.state.flowLines}
                   </g>
                   <g>{this.state.planePlotVertices}</g>
                   <text
