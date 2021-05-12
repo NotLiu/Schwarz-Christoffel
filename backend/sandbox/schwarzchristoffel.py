@@ -24,6 +24,7 @@ from scipy.optimize import newton
 class SchwarzChristoffel: 
   def __init__(self, vertices):
     self.A = None
+    self.diskAlpha = None
     self.β = None
     self.c1 = None
     self.c2 = None
@@ -220,8 +221,10 @@ class SchwarzChristoffel:
       ax.plot(mappedx, mappedy, color=color)
     return ax
 
-  def diskToPlane(self,W):
-    return 1j * ((1 + W) / (1 - W))
+  def diskToPlane(self, W):
+    alpha = self.diskAlpha
+    W2 = (W-alpha) / (1 - np.conjugate(alpha)*W)
+    return 1j * ((1 + W2) / (1 - W2))
     
   def generateCirclePoints(self, r = 0):
     points = list(np.arange(0, 2*math.pi, 0.02))
@@ -243,7 +246,8 @@ class SchwarzChristoffel:
     self.flowLines.append(points)
     return points
 
-  def getFlowLines(self):
+  def getFlowLines(self, alpha=0):
+    self.diskAlpha = alpha
     print("Getting Flow Lines")
     scale = self.getCircleRange()
     for i in range(len(scale)):
@@ -507,7 +511,7 @@ class SchwarzChristoffelAccessories:
       AVect = np.matrix(A[2:]).T
       F = np.matrix(F).T
       rightTerm = invJ * F
-      AVect = AVect - 0.03*rightTerm
+      AVect = AVect - 0.1*rightTerm
 
       A = self.A[:2]
       
@@ -521,7 +525,7 @@ class SchwarzChristoffelAccessories:
       for i in range(1, self.N - 1):
         I_ratio.append(I[i] / I[0])
 
-      if iter_counter > 500:
+      if iter_counter > 1000:
         raise Exception("Taking too long")
     
     print("Parameters found!")

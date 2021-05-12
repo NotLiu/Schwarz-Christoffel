@@ -235,16 +235,47 @@ test17 = [
   (4.23, 2.19),
   (1.79, 6.34),
 ]
-sc = SchwarzChristoffel(test17)
+
+test18 = [
+  (2.48, 1.38),
+  (7.17, 1.39),
+  (5.543, 2.24),
+  (6.09, 5.80),
+  (4.81, 1.66),
+  (2.48, 1.38)
+]
+
+test19 = [
+  (4.20, 1.90),
+  (8, 2.83),
+  (7.87, 4.72),
+  (4.19, 4.09),
+  (1.05, 1.83)
+]
+
+test20 = [
+  (0, 0),
+  (2, 0),
+  (2, 1),
+  (3, 1),
+  (3, 2),
+  (1, 2),
+  (1, 1),
+  (0,1)
+]
+
+test21 = [
+  (-1.79, 6.16),
+  (4.24, 3.37),
+  (3.61, 8.06),
+
+]
+sc = SchwarzChristoffel(test21)
 sc.getParameters()
 ax = sc.graphPoly()
 sc.getFlowLines()
 sc.graphFlowLines(ax)
-sc.upperHalfPlaneTest(7.049, ax)
-print(f"Is: {sc.I}")
-print(f"Is*c1: {[i*abs(sc.c1) for i in sc.I]}")
-print(f"Lengths: {[sc.polygon.lines[i].length for i in range(len(sc.polygon.lines))]}")
-sc.quadTest()
+#sc.upperHalfPlaneTest(7.049, ax)
 
 plt.show()
 
