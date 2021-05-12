@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
 from sandbox.polygon import Vertex, Line, Angle, Polygon
-from schwarzchristoffel import SchwarzChristoffel
+from sandbox.schwarzchristoffel import SchwarzChristoffel
 
 def defPoly(vertices):
     print(type(vertices[0]))
@@ -18,7 +18,8 @@ def get_sc(request):
     print(request)
     return Response(request.data)
   if request.method == 'POST':
-    vertices = [(vertex.x, vertex.y) for vertex in request.data['vertices']]
+    print(request.data)
+    vertices = [(vertex[0], vertex[1]) for vertex in request.data['vertices']]
     sc = SchwarzChristoffel(vertices)
     sc.getParameters()
     sc.getFlowLines()

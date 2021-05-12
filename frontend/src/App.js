@@ -31,6 +31,10 @@ class App extends React.Component {
       dataHover: null,
       hoverStart: [],
       hoverState: false,
+      flowLines: [],
+      lambda: [],
+      Is: [],
+      IRatios: [],
     };
 
     this.dataStr = "data:text/json;charset=utf-8,";
@@ -103,11 +107,38 @@ class App extends React.Component {
     this.writeVFile = this.writeVFile.bind(this);
     this.uploadVFile = this.uploadVFile.bind(this);
 
+    //calculate sc
+    this.calculateSC = this.calculateSC.bind(this);
+    this.generateFlow = this.generateFlow.bind(this);
+
     //refresh
     this.refresh = this.refresh.bind(this);
 
     //flags
     this.ttFlag = false; //only show tt after moving mouse, therefore allowing data to be loaded in first
+  }
+
+  generateFlow(coords) {}
+
+  async calculateSC() {
+    if (this.state.vertices.length >= 3) {
+      try {
+        const sc = await axios.post(
+          "/getsc",
+          { vertices: this.state.vertices },
+          {
+            headers: { dataType: "json" },
+          }
+        );
+
+        this.setState({ lambda: sc.data.lambda });
+        this.setState({ Is: sc.data.Is });
+        this.setState({ IRatios: sc.data.IRatios });
+        this.generateFlow(sc.data.flowLines);
+      } catch (err) {
+        console.log(err);
+      }
+    }
   }
 
   writeVFile() {
@@ -806,6 +837,32 @@ class App extends React.Component {
     );
   }
 
+  iTab(data) {
+    return (
+      <div>
+        Is
+        {data}
+      </div>
+    );
+  }
+
+  iRatioTab(data) {
+    return (
+      <div>
+        I Ratios
+        {data}
+      </div>
+    );
+  }
+  lambdaTab(data) {
+    return (
+      <div>
+        Lambda
+        {data}
+      </div>
+    );
+  }
+
   changeCanvasWidth(event) {
     let x = 630;
     if (Number.isInteger(Number(event.target.value))) {
@@ -1070,6 +1127,45 @@ class App extends React.Component {
         </li>
       );
     });
+    const IsList = this.state.Is.map((i, index) => {
+      let c = "";
+      if (this.state.dataHover == index) {
+        c = "dataHover";
+      } else {
+        c = "data";
+      }
+      return (
+        <li key={index} className={"vertex" + index + " " + c}>
+          {i}
+        </li>
+      );
+    });
+    const IRatiosList = this.state.IRatios.map((iRatio, index) => {
+      let c = "";
+      if (this.state.dataHover == index) {
+        c = "dataHover";
+      } else {
+        c = "data";
+      }
+      return (
+        <li key={index} className={"vertex" + index + " " + c}>
+          {iRatio}
+        </li>
+      );
+    });
+    const lambdaList = this.state.lambda.map((lambda, index) => {
+      let c = "";
+      if (this.state.dataHover == index) {
+        c = "dataHover";
+      } else {
+        c = "data";
+      }
+      return (
+        <li key={index} className={"vertex" + index + " " + c}>
+          {lambda}
+        </li>
+      );
+    });
 
     /* //draws and updates grids */
 
@@ -1227,6 +1323,9 @@ class App extends React.Component {
                   <Tab>Interior Angles</Tab>
                   <Tab>Line Lengths</Tab>
                   <Tab>Line Slopes</Tab>
+                  <Tab>lambda</Tab>
+                  <Tab>Is</Tab>
+                  <Tab>IRatios</Tab>
                 </TabList>
 
                 <TabPanel>
@@ -1253,29 +1352,60 @@ class App extends React.Component {
                   <div className="box">{this.lineSlopeTab(lineSlopeList)}</div>
                   <button onClick={this.onClickVert}>Clear</button>
                 </TabPanel>
+
+                {/* sc calculation tabs */}
+                <TabPanel>
+                  <div className="box">{this.lambdaTab(lambdaList)}</div>
+                  <button onClick={this.onClickVert}>Clear</button>
+                </TabPanel>
+
+                <TabPanel>
+                  <div className="box">{this.iTab(IsList)}</div>
+                  <button onClick={this.onClickVert}>Clear</button>
+                </TabPanel>
+
+                <TabPanel>
+                  <div className="box">{this.iRatioTab(IRatiosList)}</div>
+                  <button onClick={this.onClickVert}>Clear</button>
+                </TabPanel>
               </Tabs>
               <div id="coordSettings">
-                <form className="setForm">
-                  <label>Plane Width</label>
-                  <br />
-                  <input
-                    type="text"
-                    name="planeSize"
-                    // value={this.canvasWidth}
-                    onChange={this.changeCanvasWidth}
-                  />
-                  <br />
-                  <label>Plane Height</label>
-                  <br />
-                  <input
-                    type="text"
-                    name="planeSize"
-                    // value={this.canvasHeight}
-                    onChange={this.changeCanvasHeight}
-                  />
-                  <br />
-                  <input type="submit" value="submit" />
-                </form>
+                <div style={{ flexDirection: "column" }}>
+                  <form
+                    className="setForm"
+                    style={{ height: "13em", marginBottom: ".5em" }}
+                  >
+                    <label>Plane Width</label>
+                    <br />
+                    <input
+                      type="text"
+                      name="planeSize"
+                      // value={this.canvasWidth}
+                      onChange={this.changeCanvasWidth}
+                    />
+                    <br />
+                    <label>Plane Height</label>
+                    <br />
+                    <input
+                      type="text"
+                      name="planeSize"
+                      // value={this.canvasHeight}
+                      onChange={this.changeCanvasHeight}
+                    />
+                    <br />
+                  </form>
+                  <form className="file">
+                    Import JSON
+                    <input
+                      type="file"
+                      onClick={() => {
+                        this.value = null;
+                        return false;
+                      }}
+                      onChange={this.uploadVFile}
+                    ></input>
+                  </form>
+                </div>
                 <form className="setForm">
                   <label>(-)X Limit</label>
                   <br />
@@ -1310,53 +1440,55 @@ class App extends React.Component {
                   ></input>
                   <br></br>
                 </form>
-                <form className="setForm" onSubmit={this.submitVertex}>
-                  <label>Input Vertex</label>
-                  <br></br>
-                  <label className="vertexLabel">X</label>
-                  <input
-                    type="text"
-                    name="X"
-                    style={{ width: "6em" }}
-                    // value={this.canvasWidth}
-                    onChange={(event) => {
-                      this.setX = event.target.value;
+                <div style={{ flexDirection: "column" }}>
+                  <form
+                    className="setForm"
+                    onSubmit={this.submitVertex}
+                    style={{
+                      height: "13em",
+                      marginBottom: ".5em",
+                      marginRight: "0",
                     }}
-                  />
-                  <br />
-                  <label className="vertexLabel">Y</label>
-                  <input
-                    type="text"
-                    name="Y"
-                    style={{ width: "6em" }}
-                    className="inputVertText"
-                    // value={this.canvasHeight}
-                    onChange={(event) => {
-                      this.setY = event.target.value;
-                    }}
-                  />
-                  <br />
-                  <input type="submit" value="submit" />
-                </form>
-              </div>
-              <div id="fileFlex">
-                <div className="file">
-                  Export JSON
-                  <a id="download" href={this.dataStr} download={this.dlName}>
-                    DOWNLOAD
-                  </a>
+                  >
+                    <label>Input Vertex</label>
+                    <br></br>
+                    <label className="vertexLabel">X</label>
+                    <input
+                      type="text"
+                      name="X"
+                      style={{ width: "6em" }}
+                      // value={this.canvasWidth}
+                      onChange={(event) => {
+                        this.setX = event.target.value;
+                      }}
+                    />
+                    <br />
+                    <label className="vertexLabel">Y</label>
+                    <input
+                      type="text"
+                      name="Y"
+                      style={{ width: "6em" }}
+                      className="inputVertText"
+                      // value={this.canvasHeight}
+                      onChange={(event) => {
+                        this.setY = event.target.value;
+                      }}
+                    />
+                    <br />
+                    <input type="submit" value="submit" />
+                  </form>
+                  <div className="file">
+                    Export JSON
+                    <a id="download" href={this.dataStr} download={this.dlName}>
+                      DOWNLOAD
+                    </a>
+                  </div>
                 </div>
-                <form className="file">
-                  Import JSON
-                  <input
-                    type="file"
-                    onClick={() => {
-                      this.value = null;
-                      return false;
-                    }}
-                    onChange={this.uploadVFile}
-                  ></input>
-                </form>
+              </div>
+              <div id="calculateSC">
+                <button type="button" onClick={this.calculateSC}>
+                  CALCULATE MAPPING
+                </button>
               </div>
             </div>
           </div>
@@ -1366,7 +1498,7 @@ class App extends React.Component {
             <h1>
               Web-App for the Visualization of Schwarz-Christoffel Mapping
             </h1>
-            <h2>Introduction</h2>
+            <h2 id="intro">Introduction</h2>
             <p>
               Conformal mapping is a core concept in complex analysis, and has
               many applications outside the realm of pure mathematics.
@@ -1392,11 +1524,12 @@ class App extends React.Component {
               delved into the only existing modern implementation of the
               Schwarz-Christoffel transformation.
             </p>
-            <h2>References</h2>
+            <h2 id="process"></h2>
+            <h2 id="ref">References</h2>
             <p>XXX</p>
-            <h2>Authors</h2>
+            <h2 id="authors">Authors</h2>
             Andrew Liu Zane Fadul
-            <h2>Special Thanks</h2>
+            <h2 id="thanks">Special Thanks</h2>
             xxx
           </div>
           <div id="infoNavigator">
