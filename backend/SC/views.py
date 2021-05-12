@@ -12,6 +12,8 @@ def defPoly(vertices):
     return testPoly
 # from django.views.decorators.csrf import csrf_exempt
 
+SC = None 
+
 @api_view(['GET', 'POST'])
 def get_sc(request):
   if request.method == 'GET':
@@ -20,22 +22,36 @@ def get_sc(request):
   if request.method == 'POST':
     print(request.data)
     vertices = [(vertex[0], vertex[1]) for vertex in request.data['vertices']]
-    sc = SchwarzChristoffel(vertices)
-    sc.getParameters()
-    sc.getFlowLines()
+    SC = SchwarzChristoffel(vertices)
+    SC.getParameters()
+
+    return Response({'message': 'sc parameters and flow lines received',
+                    'lambda': [str(λ) for λ in SC.λ],
+                    'Is' : [str(I)  for I in SC.I],
+                    'IRatios': [str(IRatio) for IRatio in SC.IRatios]})
+
+
+@api_view(['GET', 'POST'])
+def get_flows(request):
+  if request.method == 'GET':
+    print(request)
+    return Response(request.data)
+  if request.method == 'POST':
+    alpha = request.data['alpha'] #alpha should be a complex number -1 < x < 1
+    SC.getFlowLines(alpha)
 
     flowLinesString = []
-    for pointSet in sc.flowLines:
+    for pointSet in SC.flowLines:
       l = []
       for point in pointSet:
         l.append(str(point))
       flowLinesString.append(l)
+    
+    return Response({
+      'message': f'flow lines received with alpha {alpha}',
+      'flowLines' : flowLinesString
+    })
 
-    return Response({'message': 'sc parameters and flow lines received',
-                    'flowLines': flowLinesString,
-                    'lambda': [str(λ) for λ in sc.λ],
-                    'Is' : [str(I)  for I in sc.I],
-                    'IRatios': [str(IRatio) for IRatio in sc.IRatios]})
 
 @api_view(['GET', 'POST'])
 def data_transfer(request):
