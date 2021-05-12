@@ -109,6 +109,7 @@ class App extends React.Component {
 
     //calculate sc
     this.calculateSC = this.calculateSC.bind(this);
+    this.generateFlow = this.generateFlow.bind(this);
 
     //refresh
     this.refresh = this.refresh.bind(this);
@@ -116,6 +117,8 @@ class App extends React.Component {
     //flags
     this.ttFlag = false; //only show tt after moving mouse, therefore allowing data to be loaded in first
   }
+
+  generateFlow(coords) {}
 
   async calculateSC() {
     if (this.state.vertices.length >= 3) {
@@ -127,7 +130,11 @@ class App extends React.Component {
             headers: { dataType: "json" },
           }
         );
-        console.log(sc);
+
+        this.setState({ lambda: sc.data.lambda });
+        this.setState({ Is: sc.data.Is });
+        this.setState({ IRatios: sc.data.IRatios });
+        this.generateFlow(sc.data.flowLines);
       } catch (err) {
         console.log(err);
       }
@@ -830,6 +837,32 @@ class App extends React.Component {
     );
   }
 
+  iTab(data) {
+    return (
+      <div>
+        Is
+        {data}
+      </div>
+    );
+  }
+
+  iRatioTab(data) {
+    return (
+      <div>
+        I Ratios
+        {data}
+      </div>
+    );
+  }
+  lambdaTab(data) {
+    return (
+      <div>
+        Lambda
+        {data}
+      </div>
+    );
+  }
+
   changeCanvasWidth(event) {
     let x = 630;
     if (Number.isInteger(Number(event.target.value))) {
@@ -1094,6 +1127,45 @@ class App extends React.Component {
         </li>
       );
     });
+    const IsList = this.state.Is.map((i, index) => {
+      let c = "";
+      if (this.state.dataHover == index) {
+        c = "dataHover";
+      } else {
+        c = "data";
+      }
+      return (
+        <li key={index} className={"vertex" + index + " " + c}>
+          {i}
+        </li>
+      );
+    });
+    const IRatiosList = this.state.IRatios.map((iRatio, index) => {
+      let c = "";
+      if (this.state.dataHover == index) {
+        c = "dataHover";
+      } else {
+        c = "data";
+      }
+      return (
+        <li key={index} className={"vertex" + index + " " + c}>
+          {iRatio}
+        </li>
+      );
+    });
+    const lambdaList = this.state.lambda.map((lambda, index) => {
+      let c = "";
+      if (this.state.dataHover == index) {
+        c = "dataHover";
+      } else {
+        c = "data";
+      }
+      return (
+        <li key={index} className={"vertex" + index + " " + c}>
+          {lambda}
+        </li>
+      );
+    });
 
     /* //draws and updates grids */
 
@@ -1276,24 +1348,24 @@ class App extends React.Component {
                   <button onClick={this.onClickVert}>Clear</button>
                 </TabPanel>
 
+                <TabPanel>
+                  <div className="box">{this.lineSlopeTab(lineSlopeList)}</div>
+                  <button onClick={this.onClickVert}>Clear</button>
+                </TabPanel>
+
                 {/* sc calculation tabs */}
                 <TabPanel>
-                  <div className="box">{this.lineSlopeTab(lineSlopeList)}</div>
+                  <div className="box">{this.lambdaTab(lambdaList)}</div>
                   <button onClick={this.onClickVert}>Clear</button>
                 </TabPanel>
 
                 <TabPanel>
-                  <div className="box">{this.lineSlopeTab(lineSlopeList)}</div>
+                  <div className="box">{this.iTab(IsList)}</div>
                   <button onClick={this.onClickVert}>Clear</button>
                 </TabPanel>
 
                 <TabPanel>
-                  <div className="box">{this.lineSlopeTab(lineSlopeList)}</div>
-                  <button onClick={this.onClickVert}>Clear</button>
-                </TabPanel>
-
-                <TabPanel>
-                  <div className="box">{this.lineSlopeTab(lineSlopeList)}</div>
+                  <div className="box">{this.iRatioTab(IRatiosList)}</div>
                   <button onClick={this.onClickVert}>Clear</button>
                 </TabPanel>
               </Tabs>
