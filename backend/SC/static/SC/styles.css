@@ -242,3 +242,9 @@ li {
   background-color: rgb(107, 199, 142);
   color: floralwhite;
 }
+
+.flowLine {
+  fill: none;
+  stroke: darkslategrey;
+  stroke-width: 2px;
+}
