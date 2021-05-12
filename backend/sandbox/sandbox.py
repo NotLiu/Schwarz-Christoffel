@@ -67,7 +67,7 @@ test2 = [
     (4,0)
     ]
 
-test3 = Polygon([
+test3 = [
     (0,0),
     (1,1),
     (0,2),
@@ -80,7 +80,7 @@ test3 = Polygon([
     (1,2),
     (2,2),
     (2,0)
-    ])
+    ]
 
 test3list = [
     (0,0),
@@ -92,7 +92,6 @@ test3list = [
     (1, -1)
     ]
 
-test3 = Polygon(test3list, True)
 
 test4 = Polygon([
     (0,0),
@@ -181,17 +180,71 @@ test11 = [
 test12 = [
   (0, 0),
   (1, 0),
-  (2, 2),
   (1, 4),
+  (0, 5),
   (-1, 2)
 ]
-sc = SchwarzChristoffel(square)
+
+test13 = [
+  (0, 0),
+  (1, 0),
+  (1, 1),
+  (2, 1),
+  (2, 2),
+  (0, 2)
+]
+
+test14 = [
+  (0, 0),
+  (4, 0),
+  (3, 1),
+  (4, 2),
+  (0, 2)
+]
+
+test14_90degrees = [
+  (0, 0),
+  (2, 0),
+  (2, 4),
+  (1, 3),
+  (0, 4)
+]
+
+test15 = [
+  (0, 0),
+  (4, 0),
+  (3, 1),
+  (3, 5),
+  (1, 5),
+  (1, 1)
+]
+
+test16 = [
+  (3.91, 0.20),
+  (6.88, 0.66),
+  (7.97, 3.46),
+  (6.09, 5.80),
+  (3.12, 5.34),
+  (5.35, 3.11),
+]
+test17 = [
+  (3.91, 0.20),
+  (6.88, 0.66),
+  (7.97, 3.46),
+  (6.09, 5.80),
+  (4.23, 2.19),
+  (1.79, 6.34),
+]
+sc = SchwarzChristoffel(test17)
 sc.getParameters()
 ax = sc.graphPoly()
 sc.getFlowLines()
 sc.graphFlowLines(ax)
-
-# sc.quadTest()
+sc.upperHalfPlaneTest(7.049, ax)
+print(f"Is: {sc.I}")
+print(f"Is*c1: {[i*abs(sc.c1) for i in sc.I]}")
+print(f"Lengths: {[sc.polygon.lines[i].length for i in range(len(sc.polygon.lines))]}")
+sc.quadTest()
 
 plt.show()
 

@@ -63,6 +63,7 @@ class SchwarzChristoffel:
         print("Solution not found...")
         return
 
+    self.sc_accessories_obj = sc_accessories
     self.polygon = sc_accessories.polygon
     self.β = sc_accessories.β
     self.A = A
@@ -71,6 +72,7 @@ class SchwarzChristoffel:
     self.J = J
     self.JLabels = JLabels
     self.λ = λ
+    print(I)
 
 
 
@@ -144,33 +146,33 @@ class SchwarzChristoffel:
       
     #Calc imaginary part of integral
     img_z = scipy.imag(z)
-    def PiProdTerm(a_i, β_i):
+    def iPiProdTerm(a_i, β_i):
       return lambda ζ: (1j*ζ-a_i)**(β_i)
     
-    terms = []
+    iterms = []
     for i in range(len(self.A)):
-      terms.append(PiProdTerm(self.A[i], self.β[i]))
+      iterms.append(iPiProdTerm(self.A[i], self.β[i]))
 
-    def imaginaryIntegralFunc(ζ, termIndex=0):
-      if termIndex == len(terms) - 1:
-        return ( 1 / terms[termIndex](ζ) )
-      result = ( 1 / terms[termIndex](ζ) ) * imaginaryIntegralFunc(ζ, termIndex + 1)
+    def imaginaryIntegralFunc(ζ, itermIndex=0):
+      if itermIndex == len(iterms) - 1:
+        return ( 1 / iterms[itermIndex](ζ) )
+      result = ( 1 / iterms[itermIndex](ζ) ) * imaginaryIntegralFunc(ζ, itermIndex + 1)
       return result
 
     γ = 1j * self.complexQuadrature(imaginaryIntegralFunc, 0, img_z)
 
     #Calculate real part of integral
-    def PiProdTerm(a_i, β_i):
+    def rPiProdTerm(a_i, β_i):
       return lambda ζ: (ζ+1j*img_z-a_i)**(β_i)
     
-    terms = []
+    rterms = []
     for i in range(len(self.A)):
-      terms.append(PiProdTerm(self.A[i], self.β[i]))
+      rterms.append(rPiProdTerm(self.A[i], self.β[i]))
 
-    def realIntegralFunc(ζ, termIndex=0):
-      if termIndex == len(terms) - 1:
-        return ( 1 / terms[termIndex](ζ) )
-      result = ( 1 / terms[termIndex](ζ) ) * realIntegralFunc(ζ, termIndex + 1)
+    def realIntegralFunc(ζ, rtermIndex=0):
+      if rtermIndex == len(rterms) - 1:
+        return ( 1 / rterms[rtermIndex](ζ) )
+      result = ( 1 / rterms[rtermIndex](ζ) ) * realIntegralFunc(ζ, rtermIndex + 1)
       return result
 
     realTerm = self.complexQuadrature(realIntegralFunc, 0, scipy.real(z))
@@ -205,6 +207,7 @@ class SchwarzChristoffel:
     return ax
 
   def graphFlowLines(self, ax=None, color="gray"):
+    print("Graphing...")
     if ax is None:
       fig, ax = plt.subplots()
 
@@ -241,13 +244,16 @@ class SchwarzChristoffel:
     return points
 
   def getFlowLines(self):
+    print("Getting Flow Lines")
     scale = self.getCircleRange()
     for i in range(len(scale)):
       self.generateCirclePoints(scale[i])
+    print("Got Circles")
 
     lineScale = self.getPiRange()
     for i in range(len(lineScale)):
       self.generateLinePoints(lineScale[i])
+    print("Got Lines")
 
   def getPiRange(self):
     return list(np.arange(0, math.pi, 0.4))
@@ -267,11 +273,13 @@ class SchwarzChristoffel:
       coord = complex(point, i)
       image = self.forwardMap(coord)
       points.append(image)
-    self.graphFlowLines(points, ax, "green")
+    mappedx = [np.real(point) for point in points]
+    mappedy = [np.imag(point) for point in points]
+    ax.plot(mappedx, mappedy, color="green")
 
   def quadTest(self):
     def PiProdTerm(a_i, β_i):
-      return lambda ζ: (ζ+1j*scipy.imag(self.A[1])-a_i)**(β_i)
+      return lambda ζ: (ζ-a_i)**(β_i)
     
     terms = []
     for i in range(len(self.A)):
@@ -283,9 +291,14 @@ class SchwarzChristoffel:
       result = ( 1 / terms[termIndex](ζ) ) * realIntegralFunc(ζ, termIndex + 1)
       return result
 
-    realTerm = self.complexQuadrature(realIntegralFunc, self.A[0], self.A[1])
-    realTerm = abs(realTerm * abs(self.c1))
-    print(self.polygon.lines[0].length, realTerm)
+    realTerms = []
+    for aIndex in range(len(self.A)-1):
+      realTerm = self.complexQuadrature(realIntegralFunc, self.A[aIndex], self.A[aIndex + 1])
+      realTerms.append(abs(realTerm * abs(self.c1)))
+      print(f"Line: {self.polygon.lines[aIndex].length}")
+      print(f"realterm from complex quad {abs(realTerm * self.c1)}")
+    print(self.sc_accessories_obj.calcIntegrals(self.A))
+    #print(self.polygon.lines[1].length, realTerm)
 
 class SchwarzChristoffelAccessories:
   def __init__(self, polygon):
@@ -395,9 +408,9 @@ class SchwarzChristoffelAccessories:
   def calcSingleIAux(self, A, staticTerm, terms, α, β1):
     def innerIntegralFunc(x, termIndex=0):
       if termIndex == len(terms) - 1:
-          return terms[termIndex](x)
+          return staticTerm * terms[termIndex](x)
       result = terms[termIndex](x) * innerIntegralFunc(x, termIndex + 1)
-      return staticTerm * result
+      return result
     return self.gaussJacobiQuad(innerIntegralFunc, α, β1)
 
   #====================================================================================================
@@ -494,7 +507,7 @@ class SchwarzChristoffelAccessories:
       AVect = np.matrix(A[2:]).T
       F = np.matrix(F).T
       rightTerm = invJ * F
-      AVect = AVect - rightTerm
+      AVect = AVect - 0.03*rightTerm
 
       A = self.A[:2]
       
@@ -508,7 +521,7 @@ class SchwarzChristoffelAccessories:
       for i in range(1, self.N - 1):
         I_ratio.append(I[i] / I[0])
 
-      if iter_counter > 50:
+      if iter_counter > 500:
         raise Exception("Taking too long")
     
     print("Parameters found!")
