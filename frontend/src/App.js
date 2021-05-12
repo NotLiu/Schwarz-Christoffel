@@ -142,11 +142,11 @@ class App extends React.Component {
             pathD.push(
               "M " +
                 this.vertexPlotConversionX(
-                  Number("-" + coords[i][0].slice(1, -2).split("-")[0])
+                  Number("-" + coords[i][0].slice(1, -2).split("-")[1])
                 ) +
                 " " +
                 this.vertexPlotConversionY(
-                  Number("-" + coords[i][0].slice(1, -2).split("-")[1])
+                  Number("-" + coords[i][0].slice(1, -2).split("-")[2])
                 ) +
                 " "
             );
@@ -171,10 +171,10 @@ class App extends React.Component {
           if (coords[i][j].includes("+")) {
             pathCoord = coords[i][j].slice(1, -2).split("+");
           } else if (coords[i][j].slice(3, -2).includes("-")) {
-            if (coords[i][j] == "-") {
+            if (coords[i][j][1] == "-") {
               pathCoord = coords[i][j].slice(1, -2).split("-");
-              pathCoords[0] = "-" + pathCoord[0];
-              pathCoord[1] = "-" + pathCoord[1];
+              pathCoord[0] = "-" + pathCoord[1];
+              pathCoord[1] = "-" + pathCoord[2];
             } else {
               pathCoord = coords[i][j].slice(1, -2).split("-");
               pathCoord[1] = "-" + pathCoord[1];
@@ -187,8 +187,8 @@ class App extends React.Component {
         }
         // pathD.push("Z");
 
-        // console.log(coords[i]);
-        // console.log("+++++++++++++++++");
+        console.log(coords[i]);
+        console.log("+++++++++++++++++");
         console.log(pathD);
 
         let path = <path className="flowLine" d={pathD.join(" ")}></path>;

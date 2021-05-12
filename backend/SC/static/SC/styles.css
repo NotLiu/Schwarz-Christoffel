@@ -248,3 +248,14 @@ li {
   stroke: darkslategrey;
   stroke-width: 2px;
 }
+
+#planeFrame {
+  pointer-events: none;
+}
+#planeFrame > line {
+  pointer-events: none;
+}
+
+path {
+  pointer-events: none;
+}
