@@ -1503,11 +1503,11 @@ class App extends React.Component {
                       strokeWidth="2"
                       fillRule="nonzero"
                     />
+                    {this.state.flowLines}
                     {this.plotPolygonLines()}
                     {this.tempCircle}
                     {this.plotUnitCircle()}
                     {this.plotUnitCircleOrigin()}
-                    {this.state.flowLines}
                   </g>
                   <g>{this.state.planePlotVertices}</g>
                   <text
@@ -1721,7 +1721,7 @@ class App extends React.Component {
             <h1>
               Web-App for the Visualization of Schwarz-Christoffel Mapping
             </h1>
-            <h2 id="intro">Introduction</h2>
+            <h3 id="intro">Introduction</h3>
             <p>
               Conformal mapping is a core concept in complex analysis, and has
               many applications outside the realm of pure mathematics.
@@ -1748,21 +1748,70 @@ class App extends React.Component {
               Schwarz-Christoffel transformation.
             </p>
             <h2 id="process"></h2>
-            <h2 id="ref">References</h2>
-            <p>XXX</p>
+            <h2 id="ref">Related Works</h2>
+            <ul>
+              <li>
+                <h3>Conformal Mapping</h3>
+              </li>
+              <li>
+                <h3>Riemann Mapping Theorem</h3>
+              </li>
+              <li>
+                <h3>Schwarz-Christoffel Transformation</h3>
+              </li>
+              <li>
+                <h3>Toby Driscoll's MATLAB Toolbox</h3>
+              </li>
+              <li>
+                <h3>Newton-Raphson Method</h3>
+              </li>
+              <li>
+                <h3>Gauss-Jacobi Quadrature</h3>
+              </li>
+            </ul>
             <h2 id="authors">Authors</h2>
-            Andrew Liu Zane Fadul
+            <ul>
+              <li>Andrew Liu</li>
+              <li>Zane Fadul</li>
+            </ul>
             <h2 id="thanks">Special Thanks</h2>
-            xxx
+            Special thanks to the following for guiding and supporting us
+            through the process of this project:
+            <ul>
+              <li>Pedro Salomo</li>
+              <li>Irith Hartman</li>
+              <li>Toby Driscoll</li>
+              <li>Olivier Marin</li>
+              <li>Li Guo</li>
+            </ul>
           </div>
           <div id="infoNavigator">
             <ul id="navigationList">
-              <li>SECTION LINK</li>
-              <li>SECTION LINK</li>
-              <li>SECTION LINK</li>
-              <li>SECTION LINK</li>
-              <li>SECTION LINK</li>
-              <li>SECTION LINK</li>
+              <li>
+                <a className="sectionLink" href="#intro">
+                  Introduction
+                </a>
+              </li>
+              <li>
+                <a className="sectionLink" href="#process">
+                  Process
+                </a>
+              </li>
+              <li>
+                <a className="sectionLink" href="#ref">
+                  Related Works
+                </a>
+              </li>
+              <li>
+                <a className="sectionLink" href="#authors">
+                  Authors
+                </a>
+              </li>
+              <li>
+                <a className="sectionLink" href="#thanks">
+                  Special Thanks
+                </a>
+              </li>
             </ul>
           </div>
         </div>

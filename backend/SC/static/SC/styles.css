@@ -258,3 +258,33 @@ li {
 path {
   pointer-events: none;
 }
+
+#infoSection {
+  padding: 1.5em 5em;
+  font-family: monospace;
+}
+#infoSection > h1 {
+  font-size: 32px;
+  font-weight: bolder;
+  margin: 1em 0;
+}
+
+#infoNavigator {
+  padding: 1.5em;
+  font-family: monospace;
+  width: 15%;
+}
+
+#navigationList {
+  position: sticky;
+  top: 0;
+  margin-top: 1em;
+}
+#navigationList > li {
+  margin-top: 2em;
+}
+
+#navigationList > li > a {
+  color: black;
+  text-decoration: none;
+}
