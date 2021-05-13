@@ -248,7 +248,7 @@ test18 = [
 test19 = [
   (4.20, 1.90),
   (8, 2.83),
-  (7.87, 4.72),
+  (3.00, 3.72),
   (4.19, 4.09),
   (1.05, 1.83)
 ]
@@ -270,7 +270,15 @@ test21 = [
   (3.61, 8.06),
 
 ]
-sc = SchwarzChristoffel(test21)
+
+test22 = [
+  (4.77, 2.31),
+  (7.11, 3.40),
+  (6.92, 5.04),
+  (4.37, 3.15),
+  (2.48, 1.38)
+]
+sc = SchwarzChristoffel(test22)
 sc.getParameters()
 ax = sc.graphPoly()
 sc.getFlowLines()

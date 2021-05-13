@@ -14,7 +14,7 @@ import copy
 import matplotlib
 import matplotlib.pyplot as plt
 import math
-from sandbox.polygon import Polygon
+from polygon import Polygon
 from numpy.linalg import LinAlgError
 import scipy.linalg
 from scipy import special
@@ -49,10 +49,10 @@ class SchwarzChristoffel:
 
         for a in A:
           if type(a) == complex:
-            raise Exception
+            raise Exception("some number is complex")
         break
       except Exception as e:
-        print(e)
+        print(f"error occured: {e}")
 
         head = vertices[-1]
         for v in range(len(vertices) - 1, 0, -1):
@@ -247,6 +247,7 @@ class SchwarzChristoffel:
     return points
 
   def getFlowLines(self, alpha=0):
+    self.flowLines = []
     self.diskAlpha = alpha
     print("Getting Flow Lines")
     scale = self.getCircleRange()
