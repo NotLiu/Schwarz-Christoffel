@@ -116,6 +116,9 @@ class App extends React.Component {
     this.setUnitCircleOrigin = this.setUnitCircleOrigin.bind(this);
     this.plotUnitCircle = this.plotUnitCircle.bind(this);
 
+    this.calculateButtonC = "rgb(107, 199, 142)";
+    this.calculateButtonT = "CALCULATE MAPPING";
+
     //refresh
     this.refresh = this.refresh.bind(this);
 
@@ -124,6 +127,8 @@ class App extends React.Component {
   }
 
   setUnitCircleOrigin() {
+    this.calculateButtonC = "rgb(223, 191, 85)";
+    this.calculateButtonT = "CALCULATING";
     const unitCircleOrigin = [...this.state.unitCircleOrigin];
 
     const ux = 31.5 * 1.8 + 0 * 31.5 * 1.5;
@@ -135,10 +140,7 @@ class App extends React.Component {
     console.log(this.state.mouseCoords[1]);
     console.log(uy);
 
-    this.setState({ IRatios: [] });
-    this.setState({ Is: [] });
     this.setState({ flowLines: [] });
-    this.setState({ lamda: [] });
     this.setState({ unitCircleOrigin }, () => {
       this.calculateFlow();
     });
@@ -165,16 +167,25 @@ class App extends React.Component {
   plotUnitCircle() {
     if (this.state.unitCircleOrigin.length > 0) {
       return (
-        <circle
-          id="unitCircle"
-          cx={31.5 * 1.8}
-          cy={this.canvasHeight - 31.5 * 1.8}
-          r={31.5 * 1.5}
-          fill="darkseagreen"
-          stroke="darkslategrey"
-          strokeWidth="2px"
-          onClick={this.setUnitCircleOrigin}
-        />
+        <g>
+          <circle
+            id="unitCircle"
+            cx={31.5 * 1.8}
+            cy={this.canvasHeight - 31.5 * 1.8}
+            r={31.5 * 1.5}
+            fill="darkseagreen"
+            stroke="darkslategrey"
+            strokeWidth="2px"
+            onClick={this.setUnitCircleOrigin}
+          />
+          <circle
+            cx={31.5 * 1.8}
+            cy={this.canvasHeight - 31.5 * 1.8}
+            r={2}
+            fill="darkslategrey"
+            pointerEvents="none"
+          ></circle>
+        </g>
       );
     } else {
       return;
@@ -258,6 +269,8 @@ class App extends React.Component {
         this.setState({ flowLines }, () => {
           flowLines = [...this.state.flowLines];
           // console.log(this.state.flowLines);
+          this.calculateButtonC = "rgb(107, 199, 142)";
+          this.calculateButtonT = "CALCULATE MAPPING";
         });
       }
     } catch (err) {
@@ -298,6 +311,8 @@ class App extends React.Component {
 
   async calculateSC() {
     if (this.state.vertices.length >= 3) {
+      this.calculateButtonC = "rgb(223, 191, 85)";
+      this.calculateButtonT = "CALCULATING";
       try {
         this.setState({ lambda: ["CALCULATING"] });
         this.setState({ Is: ["CALCULATING"] });
@@ -1690,8 +1705,12 @@ class App extends React.Component {
                 </div>
               </div>
               <div id="calculateSC">
-                <button type="button" onClick={this.calculateSC}>
-                  CALCULATE MAPPING
+                <button
+                  type="button"
+                  onClick={this.calculateSC}
+                  style={{ backgroundColor: this.calculateButtonC }}
+                >
+                  {this.calculateButtonT}
                 </button>
               </div>
             </div>

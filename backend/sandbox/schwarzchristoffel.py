@@ -14,7 +14,7 @@ import copy
 import matplotlib
 import matplotlib.pyplot as plt
 import math
-from polygon import Polygon
+from sandbox.polygon import Polygon
 from numpy.linalg import LinAlgError
 import scipy.linalg
 from scipy import special
