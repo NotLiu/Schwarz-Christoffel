@@ -35,6 +35,7 @@ class App extends React.Component {
       lambda: [],
       Is: [],
       IRatios: [],
+      unitCircleOrigin: [],
     };
 
     this.dataStr = "data:text/json;charset=utf-8,";
@@ -109,7 +110,11 @@ class App extends React.Component {
 
     //calculate sc
     this.calculateSC = this.calculateSC.bind(this);
+    this.calculateFlow = this.calculateFlow.bind(this);
     this.generateFlow = this.generateFlow.bind(this);
+    this.plotUnitCircleOrigin = this.plotUnitCircleOrigin.bind(this);
+    this.setUnitCircleOrigin = this.setUnitCircleOrigin.bind(this);
+    this.plotUnitCircle = this.plotUnitCircle.bind(this);
 
     //refresh
     this.refresh = this.refresh.bind(this);
@@ -118,12 +123,69 @@ class App extends React.Component {
     this.ttFlag = false; //only show tt after moving mouse, therefore allowing data to be loaded in first
   }
 
+  setUnitCircleOrigin() {
+    const unitCircleOrigin = [...this.state.unitCircleOrigin];
+
+    const ux = 31.5 * 1.8 + 0 * 31.5 * 1.5;
+    const uy = this.canvasHeight - 31.5 * 1.8 + 0 * 1.5 * 31.5;
+
+    unitCircleOrigin[0] = (this.state.mouseCoords[0] - ux) / 47.25;
+    unitCircleOrigin[1] = (uy - this.state.mouseCoords[1]) / 47.25;
+
+    console.log(this.state.mouseCoords[1]);
+    console.log(uy);
+
+    this.setState({ IRatios: [] });
+    this.setState({ Is: [] });
+    this.setState({ flowLines: [] });
+    this.setState({ lamda: [] });
+    this.setState({ unitCircleOrigin }, () => {
+      this.calculateFlow();
+    });
+  }
+
+  plotUnitCircleOrigin() {
+    if (this.state.unitCircleOrigin.length > 0) {
+      return (
+        <circle
+          cx={31.5 * 1.8 + this.state.unitCircleOrigin[0] * 31.5 * 1.5}
+          cy={
+            this.canvasHeight -
+            31.5 * 1.8 -
+            this.state.unitCircleOrigin[1] * 1.5 * 31.5
+          }
+          r={5}
+          fill="red"
+          pointerEvents="none"
+        ></circle>
+      );
+    }
+  }
+
+  plotUnitCircle() {
+    if (this.state.unitCircleOrigin.length > 0) {
+      return (
+        <circle
+          id="unitCircle"
+          cx={31.5 * 1.8}
+          cy={this.canvasHeight - 31.5 * 1.8}
+          r={31.5 * 1.5}
+          fill="darkseagreen"
+          stroke="darkslategrey"
+          strokeWidth="2px"
+          onClick={this.setUnitCircleOrigin}
+        />
+      );
+    } else {
+      return;
+    }
+  }
+
   generateFlow(coords) {
     try {
       let flowLines = [...this.state.flowLines];
       for (let i = 0; i < coords.length; i++) {
         let pathD = [];
-        console.log(coords[i][0]);
 
         if (coords[i][0].includes("+")) {
           pathD.push(
@@ -187,9 +249,9 @@ class App extends React.Component {
         }
         // pathD.push("Z");
 
-        console.log(coords[i]);
-        console.log("+++++++++++++++++");
-        console.log(pathD);
+        // console.log(coords[i]);
+        // console.log("+++++++++++++++++");
+        // console.log(pathD);
 
         let path = <path className="flowLine" d={pathD.join(" ")}></path>;
         flowLines.push(path);
@@ -203,12 +265,46 @@ class App extends React.Component {
     }
   }
 
+  async calculateFlow() {
+    try {
+      let unitAlpha = "(0+0j)";
+      if (this.state.unitCircleOrigin[1] >= 0) {
+        unitAlpha =
+          String(this.state.unitCircleOrigin[0]) +
+          "+" +
+          String(this.state.unitCircleOrigin[1]) +
+          "j";
+      } else {
+        unitAlpha =
+          String(this.state.unitCircleOrigin[0]) +
+          String(this.state.unitCircleOrigin[1]) +
+          "j";
+      }
+
+      console.log(unitAlpha);
+      const flow = await axios.post(
+        "/getflow",
+        { alpha: unitAlpha },
+        { headers: { dataType: "json" } }
+      );
+
+      console.log(flow);
+
+      this.generateFlow(flow.data.flowLines);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   async calculateSC() {
     if (this.state.vertices.length >= 3) {
       try {
         this.setState({ lambda: ["CALCULATING"] });
         this.setState({ Is: ["CALCULATING"] });
         this.setState({ IRatios: ["CALCULATING"] });
+        if (this.state.unitCircleOrigin.length == 0) {
+          this.setState({ unitCircleOrigin: [0, 0] });
+        }
         const sc = await axios.post(
           "/getsc",
           { vertices: this.state.vertices },
@@ -220,7 +316,7 @@ class App extends React.Component {
         this.setState({ lambda: sc.data.lambda });
         this.setState({ Is: sc.data.Is });
         this.setState({ IRatios: sc.data.IRatios });
-        this.generateFlow(sc.data.flowLines);
+        this.calculateFlow();
       } catch (err) {
         console.log(err);
       }
@@ -338,6 +434,7 @@ class App extends React.Component {
       this.setState({ Is: [] });
       this.setState({ flowLines: [] });
       this.setState({ lamda: [] });
+      this.setState({ unitCircleOrigin: [] });
     }
     const vertices = [];
     if (vert != [] && b) {
@@ -384,6 +481,13 @@ class App extends React.Component {
 
   async getPolyData(vertices) {
     try {
+      if (this.state.IRatios != []) {
+        this.setState({ IRatios: [] });
+        this.setState({ Is: [] });
+        this.setState({ flowLines: [] });
+        this.setState({ lamda: [] });
+        this.setState({ unitCircleOrigin: [] });
+      }
       const angleSignal = await axios.post(
         "/data",
         { vertices },
@@ -1131,6 +1235,7 @@ class App extends React.Component {
     this.setState({ Is: [] });
     this.setState({ flowLines: [] });
     this.setState({ lamda: [] });
+    this.setState({ unitCircleOrigin: [] });
   };
   render() {
     const listItems = this.state.vertices.map((vertex, index) => {
@@ -1385,6 +1490,8 @@ class App extends React.Component {
                     />
                     {this.plotPolygonLines()}
                     {this.tempCircle}
+                    {this.plotUnitCircle()}
+                    {this.plotUnitCircleOrigin()}
                     {this.state.flowLines}
                   </g>
                   <g>{this.state.planePlotVertices}</g>

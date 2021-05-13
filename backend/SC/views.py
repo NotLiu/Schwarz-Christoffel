@@ -22,6 +22,7 @@ def get_sc(request):
   if request.method == 'POST':
     print(request.data)
     vertices = [(vertex[0], vertex[1]) for vertex in request.data['vertices']]
+    global SC 
     SC = SchwarzChristoffel(vertices)
     SC.getParameters()
 
@@ -37,7 +38,7 @@ def get_flows(request):
     print(request)
     return Response(request.data)
   if request.method == 'POST':
-    alpha = request.data['alpha'] #alpha should be a complex number -1 < x < 1
+    alpha = complex(request.data['alpha']) #alpha should be a complex number -1 < x < 1
     SC.getFlowLines(alpha)
 
     flowLinesString = []
