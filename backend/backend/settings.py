@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
+import django_heroku
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,7 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'SC.apps.SCConfig',
     'rest_framework',
-    'corsheaders'
+    'corsheaders',
+    'todo'
 ]
 
 # CSRF_COOKIE_NAME = "XSRF-TOKEN"
@@ -138,3 +142,6 @@ CORS_ALLOW_HEADERS = (
 # CORS_ORIGIN_WHITELIST = serverconfig.CORS_ORIGIN_WHITELIST
 # CSRF_TRUSTED_ORIGINS = serverconfig.CSRF_TRUSTED_ORIGINS
 CSRF_COOKIE_NAME = "XSRF-TOKEN"
+
+# Activate Django-Heroku.
+django_heroku.settings(locals())

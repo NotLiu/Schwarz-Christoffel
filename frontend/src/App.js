@@ -327,6 +327,7 @@ class App extends React.Component {
             headers: { dataType: "json" },
           }
         );
+        console.log(sc);
 
         this.setState({ lambda: sc.data.lambda });
         this.setState({ Is: sc.data.Is });
