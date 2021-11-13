@@ -7,3 +7,6 @@ env/
 
 node_modules
 build/
+dist/
+
+backend/SC/static/*.js
