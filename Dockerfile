@@ -34,4 +34,4 @@ RUN pipenv install --system --deploy
 COPY backend /app
 COPY --from=frontend /frontend/dist/ /app/SC/static/SC/build/
 
-CMD ["gunicorn", "-b", "0.0.0.0:$PORT", "backend.wsgi"]
+CMD "gunicorn -b 0.0.0.0:$PORT backend.wsgi"
