@@ -1213,6 +1213,7 @@ class App extends React.Component {
   }
 
   submitVertex(event) {
+    this.setState({ planePlotVertices: [] });
     this.pushVert(
       this.vertexPlotConversionX(this.setX),
       this.vertexPlotConversionY(this.setY)
