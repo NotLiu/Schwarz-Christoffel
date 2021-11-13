@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "webpack --watch --config webpack.config.js",
-    "build": "react-scripts build"
+    "build": "webpack --config webpack.config.prod.js"
   },
   "keywords": [],
   "author": "",
@@ -29,6 +29,7 @@
     "@babel/plugin-proposal-class-properties": "^7.12.13",
     "@babel/preset-react": "^7.12.13",
     "babel-loader": "^8.2.2",
-    "css-loader": "^5.2.0"
+    "css-loader": "^5.2.0",
+    "webpack-merge": "^5.8.0"
   }
 }
