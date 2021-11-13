@@ -1,27 +1,42 @@
 # Schwarz-Christoffel
+
 Web-App for the Visualization of Schwarz-Christoffel Mapping
 
 # Setup:
 
 ### Enter Django project folder
+
 cd backend
+
 ### Setup and activate pipenv
+
 pip install pipenv (if you don't already have pipenv)
 pipenv shell
+
 ### Install requirements, this is just Django, Django REST framework, and Django CORS headers at the moment
+
 pip install -r requirements.txt
+
 ### Setup Django, migrate is mainly used for database
+
 python manage.py migrate
+
 ### build webpackage
+
 // keep this running in a separate cmd to automatically update webpackage changes as you dev
 
 npm run dev
+
 ### run server
+
 python manage.py runserver
+
 ### Then visit http://localhost:8000
 
 # Directory Guide:
+
 ## Overview (key files)
+
 ```
 -backend  -backend -settings
 	 	   -urls
@@ -38,7 +53,9 @@ python manage.py runserver
 .gitignore
 README
 ```
+
 ## Key File Explanation
+
 ```
 ./backend/backend - Django setup directory
 ./backend/backend/settings.py - Django settings
@@ -62,15 +79,20 @@ README
 ```
 
 ## Jupyter Notebook Sandbox
+
 ### The .ipynb is included in the .gitignore, please use the following command each time you wish to push sandbox code updates.
+
 ```
 jupyter nbconvert $(pwd)/sandbox.ipynb --to="python" --output-dir=$(pwd) --output="sandbox"
 ```
 
 ## Authors
+
 Andrew Liu (@NotLiu), Zane Fadul (@ZaneFadul)
+
+## Live Link
+
+https://schwarz-christoffel.herokuapp.com/
 
 ###Relevant base guides
 https://mattsegal.dev/django-react.html
-
-

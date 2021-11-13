@@ -1723,54 +1723,10 @@ class App extends React.Component {
             <h1>
               Web-App for the Visualization of Schwarz-Christoffel Mapping
             </h1>
-            <h3 id="intro">Introduction</h3>
-            <p>
-              Conformal mapping is a core concept in complex analysis, and has
-              many applications outside the realm of pure mathematics.
-              Specifically, the Schwarz-Christoffel transformation method deals
-              with mapping half-planes onto closed polygons, with applications
-              in various fields including: physics, fluid dynamics, minimal
-              surfaces, etc. The only known computational toolkit for computing
-              this mapping method only exists as a MATLAB implementation, which
-              stands as a barrier to general use. We hope to create a web-app
-              implementation that visualizes Schwarz-Christoffel Mapping and
-              provide an easy-to-use Web API to make it more accessible to users
-              everywhere. Initially, we had no foundations of complex analysis,
-              so our first step towards realizing this project was to research
-              the various approaches and steps to solving conformal mapping,
-              Schwarz-Christoffel mapping in particular. First, we explored the
-              basics of the field of complex analysis to gain an understanding
-              of the field we were working in. From there we were guided to a
-              report documenting the basic procedure of computing the
-              Schwarz-Christoffel transformation dating back to the 1990s. With
-              this detailed exploration of the procedure, we then researched the
-              various terms and methods used in the calculation such as the
-              Gauss-Jacobi Quadrature and Newton-Rhapson Method. Finally, we
-              delved into the only existing modern implementation of the
-              Schwarz-Christoffel transformation.
-            </p>
+            <h3 id="intro">Github</h3>
+            <a src="https://github.com/NotLiu/Schwarz-Christoffel"></a>
             <h2 id="process"></h2>
             <h2 id="ref">Related Works</h2>
-            <ul>
-              <li>
-                <h3>Conformal Mapping</h3>
-              </li>
-              <li>
-                <h3>Riemann Mapping Theorem</h3>
-              </li>
-              <li>
-                <h3>Schwarz-Christoffel Transformation</h3>
-              </li>
-              <li>
-                <h3>Toby Driscoll's MATLAB Toolbox</h3>
-              </li>
-              <li>
-                <h3>Newton-Raphson Method</h3>
-              </li>
-              <li>
-                <h3>Gauss-Jacobi Quadrature</h3>
-              </li>
-            </ul>
             <h2 id="authors">Authors</h2>
             <ul>
               <li>Andrew Liu</li>
