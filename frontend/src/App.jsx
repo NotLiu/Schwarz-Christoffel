@@ -1724,7 +1724,7 @@ class App extends React.Component {
               Web-App for the Visualization of Schwarz-Christoffel Mapping
             </h1>
             <h3 id="intro">Github</h3>
-            <a src="https://github.com/NotLiu/Schwarz-Christoffel"></a>
+            <a href="https://github.com/NotLiu/Schwarz-Christoffel"></a>
             <h2 id="process"></h2>
             <h2 id="ref">Related Works</h2>
             <h2 id="authors">Authors</h2>
