@@ -28,7 +28,7 @@ SECRET_KEY = 'oit3s0-ela=2e1m*%kuy=^!d%ntgmh%h0%+lif5i(r86q$^&kc'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['schwarz-christoffel.herokuapp.com',"*"]
 
 # Application definition
 
