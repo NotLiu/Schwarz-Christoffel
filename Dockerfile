@@ -29,9 +29,9 @@ COPY backend/Pipfile /app/Pipfile
 COPY backend/Pipfile.lock /app/Pipfile.lock
 
 WORKDIR /app
-RUN pipenv install
+RUN pipenv install --system --deploy 
 
 COPY backend /app
 COPY --from=frontend /frontend/dist/ /app/SC/static/SC/build/
 
-CMD ["pipenv", "run", "gunicorn", "-b", "0.0.0.0:8000", "backend.wsgi"]
+CMD ["gunicorn", "-b", "0.0.0.0:8000", "backend.wsgi"]
