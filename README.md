@@ -9,32 +9,11 @@ https://schwarz-christoffel.herokuapp.com/
 
 # Setup:
 
-### Enter Django project folder
+### Build using Docker
+```Docker build -t {name of your choosing} .```
 
-cd backend
-
-### Setup and activate pipenv
-
-pip install pipenv (if you don't already have pipenv)
-pipenv shell
-
-### Install requirements, this is just Django, Django REST framework, and Django CORS headers at the moment
-
-pip install -r requirements.txt
-
-### Setup Django, migrate is mainly used for database
-
-python manage.py migrate
-
-### build webpackage
-
-// keep this running in a separate cmd to automatically update webpackage changes as you dev
-
-npm run dev
-
-### run server
-
-python manage.py runserver
+### Run using Docker
+```Docker run -p 8000:8000 {name of your choosing}```
 
 ### Then visit http://localhost:8000
 
