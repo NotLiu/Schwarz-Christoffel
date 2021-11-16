@@ -1430,7 +1430,7 @@ class App extends React.Component {
       }
       return (
         <li key={index} className={"vertex" + index + " " + c}>
-          β{index} : {beta.toFixed(2)}
+          β{index} : {Number.parseFloat(beta).toFixed(3)}
         </li>
       );
     });
