@@ -29,7 +29,9 @@ def get_sc(request):
     return Response({'message': 'sc parameters and flow lines received',
                     'lambda': [str(λ) for λ in SC.λ],
                     'Is' : [str(I)  for I in SC.I],
-                    'IRatios': [str(IRatio) for IRatio in SC.IRatios]})
+                    'IRatios': [str(IRatio) for IRatio in SC.IRatios],
+                    'As' : [str(A) for A in SC.A],
+                    'Bs' : [str(B) for B in SC.β]})
 
 
 @api_view(['GET', 'POST'])

@@ -20,6 +20,7 @@ FROM python:3.9-slim as backend
 # These two environment variables prevent __pycache__/ files.
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONDONTWRITEBYTECODE 1
+ENV PORT 8000
 
 RUN pip install pipenv
 

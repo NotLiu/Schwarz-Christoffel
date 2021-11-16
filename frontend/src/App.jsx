@@ -35,6 +35,8 @@ class App extends React.Component {
       lambda: [],
       Is: [],
       IRatios: [],
+      As: [],
+      Betas: [],
       unitCircleOrigin: [],
     };
 
@@ -332,6 +334,8 @@ class App extends React.Component {
         this.setState({ lambda: sc.data.lambda });
         this.setState({ Is: sc.data.Is });
         this.setState({ IRatios: sc.data.IRatios });
+        this.setState({ As: sc.data.As });
+        this.setState({ Betas: sc.data.Bs });
         this.calculateFlow();
       } catch (err) {
         console.log(err);
@@ -1049,6 +1053,24 @@ class App extends React.Component {
     );
   }
 
+  AsTab(data) {
+    return (
+      <div>
+        A's
+        <ul className="dataList">{data}</ul>
+      </div>
+    );
+  }
+
+  betasTab(data) {
+    return (
+      <div>
+        β's
+        <ul className="dataList">{data}</ul>
+      </div>
+    );
+  }
+
   iTab(data) {
     return (
       <div>
@@ -1249,6 +1271,8 @@ class App extends React.Component {
     this.setState({ lineSlopes: [] });
     this.setState({ planePlotVertices: [] });
     this.setState({ IRatios: [] });
+    this.setState({ As: [] });
+    this.setState({ Betas: [] });
     this.setState({ Is: [] });
     this.setState({ flowLines: [] });
     this.setState({ lamda: [] });
@@ -1381,6 +1405,32 @@ class App extends React.Component {
       return (
         <li key={index} className={"vertex" + index + " " + c}>
           {lambda}
+        </li>
+      );
+    });
+    const AList = this.state.As.map((A, index) => {
+      let c = "";
+      if (this.state.dataHover == index) {
+        c = "dataHover";
+      } else {
+        c = "data";
+      }
+      return (
+        <li key={index} className={"vertex" + index + " " + c}>
+          A{index} : {A}
+        </li>
+      );
+    });
+    const betaList = this.state.Betas.map((beta, index) => {
+      let c = "";
+      if (this.state.dataHover == index) {
+        c = "dataHover";
+      } else {
+        c = "data";
+      }
+      return (
+        <li key={index} className={"vertex" + index + " " + c}>
+          {beta}
         </li>
       );
     });
@@ -1544,6 +1594,8 @@ class App extends React.Component {
                   <Tab>Interior Angles</Tab>
                   <Tab>Line Lengths</Tab>
                   <Tab>Line Slopes</Tab>
+                  <Tab>A's</Tab>
+                  <Tab>β's</Tab>
                   <Tab>lambda</Tab>
                   <Tab>Is</Tab>
                   <Tab>IRatios</Tab>
@@ -1575,6 +1627,14 @@ class App extends React.Component {
                 </TabPanel>
 
                 {/* sc calculation tabs */}
+                <TabPanel>
+                  <div className="box">{this.AsTab(AList)}</div>
+                  <button onClick={this.onClickVert}>Clear</button>
+                </TabPanel>
+                <TabPanel>
+                  <div className="box">{this.betasTab(betaList)}</div>
+                  <button onClick={this.onClickVert}>Clear</button>
+                </TabPanel>
                 <TabPanel>
                   <div className="box">{this.lambdaTab(lambdaList)}</div>
                   <button onClick={this.onClickVert}>Clear</button>

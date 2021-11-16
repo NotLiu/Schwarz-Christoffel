@@ -2,6 +2,11 @@
 
 Web-App for the Visualization of Schwarz-Christoffel Mapping
 
+
+## Live Link
+
+https://schwarz-christoffel.herokuapp.com/
+
 # Setup:
 
 ### Enter Django project folder
@@ -90,9 +95,6 @@ jupyter nbconvert $(pwd)/sandbox.ipynb --to="python" --output-dir=$(pwd) --outpu
 
 Andrew Liu (@NotLiu), Zane Fadul (@ZaneFadul)
 
-## Live Link
-
-https://schwarz-christoffel.herokuapp.com/
 
 ###Relevant base guides
 https://mattsegal.dev/django-react.html
